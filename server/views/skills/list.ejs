@@ -1,0 +1,51 @@
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <%- include('../admin_alert/alert'); -%>
+        <div class="col-12">
+            <div class="bg-light rounded h-100 p-4">
+                <h6 class="mb-4">Skills</h6>
+                <h6 class="mb-4 d-flex align-items-center justify-content-between">
+                    <a target="_self" href="/Admin/Skills/Create"><button type="button" class="btn btn-primary m-2"><i class="fa-solid fa-plus"></i> Create New Skill</button></a>
+                    <form  class="d-flex align-items-center mb-4"  target="_self" action="Admin/Skills" method="GET">
+                        <label>Sort</label>
+                        <select onchange="this.parentElement.submit()" style="width: auto;margin:10px 30px !important;" name="sort_type"
+                            class="form-select form-select mb-3" aria-label=".form-select-lg example">
+                            <option <%=locals.data.filter.sortType=="date_des" ?"selected":""%> value="date_des">Created des</option>
+                            <option <%=locals.data.filter.sortType=="date_inc" ?"selected":""%> value="date_inc">Created inc</option>
+                            <option <%=locals.data.filter.sortType=="name_des" ?"selected":""%> value="name_des">Name des</option>
+                            <option <%=locals.data.filter.sortType=="name_inc" ?"selected":""%> value="name_inc">Name inc</option>
+                        </select>
+                    </form>
+                </h6>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Image</th>
+                                <th scope="col">IsActive</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if(locals.data.skills)locals.data.skills.forEach((Skill,index)=> {%>
+                            <tr>
+                                <th scope="row"><%= index+1 %></th>
+                                <td><%= Skill.Name %></td>
+                                <td>
+                                    <img class="img-fluid mx-auto" src="static/images/skills/<%=Skill.Image%>" alt="<%=Skill.Image%>" style="width: 100px; height: 100px;">
+                                </td>
+                                <td><%= Skill.IsActive %></td>
+                                <td>
+                                    <a target="_self" href="/Admin/Skills/Edit/<%= Skill._id %>"><button type="button" class="btn btn-<%= Skill.IsActive?"primary":"secondary" %> m-2"><i class="fa-solid fa-pen-to-square"></i> Edit</button></a>
+                                </td>
+                            </tr>
+                            <%}); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+{
+    "system_error":"Lỗi hệ thống!"
+    ,"not_authorized":"Hãy đăng nhập để tiếp tục."
+    ,"permissions_denied_action":"Quyền của bạn không đủ để thực hiện hành động này."
+    ,"email_was_verified":"Email này đã được xác minh."
+    ,"email_was_not_verified":"Email này chưa được xác minh."
+    ,"account_not_exist":"Tài khoản không tồn tại."
+    ,"email_constraint":"\nEmail chuẩn cần có định dạng: <username>@<domain>.<tên miền>. \nBắt đầu bằng một hoặc nhiều ký tự chữ cái, số, dấu gạch dưới (_) hoặc dấu chấm (.).\nTiếp đó là một ký tự '@'.\nTiếp theo là một hoặc nhiều ký tự chữ cái, số hoặc dấu gạch dưới.\nSau đó là một dấu chấm (.) và một hoặc hai ký tự chữ cái, ví dụ: .com, .edu, .gov, .org, .net, .info, .biz, .io, ...\nĐịa chỉ email không chứa khoảng trắng hoặc ký tự đặc biệt ngoài dấu gạch dưới (_) hoặc dấu chấm (.)."
+    ,"account_name_constraint":"\nChiều dài tên tối thiểu 1 và tối đa 50 ký tự."
+    ,"password_constraint":"\nMật Khẩu:\nÍt nhất 8 ký tự.\nChứa ít nhất một chữ hoa và một chữ thường.\nChứa ít nhất một chữ số và một ký tự đặc biệt."
+    ,"password_incorrect":"Mật Khẩu Không Khớp."
+    ,"verify_complete":"Xác thực thành công."
+    ,"token_outdate":"Mã quá hạn."
+    ,"token_invalid":"Mã không hợp lệ."
+    ,"reset_password_success":"Thiết lập lại mật khẩu thành công."
+    ,"email_was_registered_by_other_person":"Email đã được người khác đăng ký."
+    ,"account_bantime":"Tài khoản của bạn không được cấp phép cho đến khi: "
+    ,"confirm_password_not_right":"Xác nhận lại mật khẩu không đúng."
+    ,"birth_year_invalid":"Năm sinh không hợp lệ."
+
+    ,"skill_name_constraint":"Chiều dài kỹ năng tối thiểu 1 và tối đa 30 ký tự."
+    ,"skill_not_exist":"Kỹ năng không tồn tại."
+
+    ,"account_is_not_user":"Tài khoản này không phải là người dùng."
+    ,"datetime_is_unvalid":"Ngày giờ không hợp lệ."
+    ,"error_with_save_file":"Lỗi trong việc lưu tệp tin."
+    ,"file_only_image":"Chỉ cho phép hình ảnh."
+    ,"file_only_pdf":"Chỉ cho phép file PDF."
+    ,"must_upload_file_pdf":"Phải tải lên file PDF."
+    ,"pdf_file_limit_size_kb":"Kích thước file PDF bị giới hạn {{size}} KB."
+    ,"must_upload_file_image":"Phải tải lên file ảnh."
+    ,"image_file_limit_size_kb":"Kích thước file ảnh bị giới hạn {{size}} KB."
+
+    ,"verify_email_title_email_template":"Về việc xác minh Email của bạn."
+    ,"verify_email_content_email_template":"Xin chào {{name}}!\nĐể xác minh email này bạn hãy truy cập vào đường dẫn dưới đây:\n{{verify_url}}\n(Token hiệu lực trong {{token_time}} phút)\nTừ Startup Map Server\nĐây là email tự động, vui lòng không phản hồi."
+    ,"reset_password_title_email_template":"Về việc thiết lập lại mật khẩu của bạn."
+    ,"reset_password_content_email_template":"Xin chào {{name}}!\nĐể thiết lập lại mật khẩu, bạn hãy truy cập vào đường dẫn dưới đây:\n{{reset_password_url}}\n(Token hiệu lực trong {{token_time}} phút)\nTừ Startup Map Server\nĐây là email tự động, vui lòng không phản hồi."
+
+    ,"account_skills_not_exist":"Các kỹ năng của tài khoản không tồn tại."
+    ,"cv_not_exist":"CV không tồn tại."
+    ,"cv_name_constraint":"Chiều dài tên tối thiểu 1 và tối đa 50 ký tự."
+    ,"account_maxim_constraint":"Châm ngôn dài tối đa {{length}} ký tự."
+    ,"account_description_constraint":"Mô tả dài tối đa {{length}} ký tự."
+    ,"account_contact_constraint":"Thông tin liên lạc dài tối đa {{length}} ký tự."
+    ,"account_career_target_constraint":"Mục tiêu nghề nghiệp dài tối đa {{length}} ký tự."
+    ,"account_education_constraint":"Thông tin học vấn dài tối đa {{length}} ký tự."
+    ,"account_work_experience_constraint":"Tóm tắt kinh nghiệm làm việc dài tối đa {{length}} ký tự."
+    
+    ,"team_maxim_constraint":"Châm ngôn dài tối đa {{length}} ký tự."
+    ,"team_description_constraint":"Mô tả dài tối đa {{length}} ký tự."
+    ,"team_internal_info_constraint":"Thông cáo nội bộ dài tối đa {{length}} ký tự."
+    ,"team_not_exist":"Team không tồn tại."
+    ,"team_name_constraint":"Chiều dài tên tối thiểu 1 và tối đa {{length}} ký tự."
+
+    ,"is_not_member":"Bạn chưa phải là một thành viên."
+    ,"was_a_member":"Đã là một thành viên trước đó."
+    ,"new_leader_unvalid":"Leader mới không hợp lệ."
+    ,"member_unvalid":"Thành viên không hợp lệ."
+
+    ,"request_not_exist":"Yêu cầu không tồn tại."
+    ,"request_was_responsed":"Yêu cầu đã được phản hồi trước đó."
+    ,"request_was_finish":"Yêu cầu đã kết thúc. Không thể tương tác."
+    ,"request_title_constraint":"Tiêu đề dài tối đa {{length}} ký tự."
+    ,"request_content_constraint":"Nội dung dài tối đa {{length}} ký tự."
+    ,"only_one_request_one_time":"Chỉ gửi một request, một lần."
+    
+    ,"post_content_constraint":"Chiều dài Nội dung tối thiểu 1 và tối đa {{length}} ký tự."
+    ,"post_not_exist":"Bài viết không tồn tại."
+
+
+
+
+}

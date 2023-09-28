@@ -1,0 +1,36 @@
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <%- include('../admin_alert/alert'); -%>
+        <% if(locals.data){ %>
+            <div class="col-sm-12 col-xl-6">
+                <div class="bg-light rounded h-100 p-4">
+                    <h6 class="mb-4">Edit User</h6>
+                    <form target="_self" action="Admin/Users/Edit/<%= locals.data._id %>" method="POST">
+                        <div class="form-floating mb-3">
+                            <input disabled value="<%=locals.data.Email%>" type="email" class="form-control"
+                                id="user_email" placeholder="name@example.com">
+                            <label for="user_email">Email</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input disabled value="<%=locals.data.Name%>" type="text" class="form-control"
+                                id="user_name" placeholder="name">
+                            <label for="user_name">Name</label>
+                        </div>
+                        <hr>
+                        <div class="form-floating mb-3">
+                            <input value="<%= locals.data.BanTimeString  %>" name="ban_time"
+                            class="form-control" type="datetime-local" id="user_ban_time">
+                            <label for="user_ban_time">Ban Time (UTC)</label>
+                        </div>
+                        <br><br><br>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                        <br><br><br>
+                        <a target="_self" href="/Admin/Users">
+                            <button type="button" class="btn btn-link m-2">Back to list</button>
+                        </a>
+                    </form>
+                </div>
+            </div>
+            <% } %>
+    </div>
+</div>

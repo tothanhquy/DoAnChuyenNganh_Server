@@ -1,0 +1,37 @@
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <%- include('../admin_alert/alert'); -%>
+        <% if(locals.data){ %>
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-light rounded h-100 p-4">
+                <h6 class="mb-4">Edit Skill</h6>
+                <form target="_self" action="Admin/Skills/Edit/<%= locals.data._id %>" method="POST" enctype="multipart/form-data">
+                    <div class="form-floating mb-3">
+                        <input value="<%=locals.data.Name%>" type="text" name="name" class="form-control" id="Skill_name" placeholder="name">
+                        <label for="floatingInput">Name</label>
+                    </div>
+                    <div class="mb-3">
+                        <img class="img-fluid mx-auto" src="static/images/skills/<%=locals.data.Image%>" alt="<%=locals.data.Image%>"
+                            style="width: 200px; height: 200px;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Image Skill</label>
+                        <input name="image_skill" class="form-control" type="file" id="formFile">
+                    </div>
+                    <hr>
+                    <div class="form-check form-switch">
+                        <input <%=locals.data.IsActive?"checked":""%> value="active" name="is_active" class="form-check-input" type="checkbox" role="switch" id="Skill_isactive">
+                        <label class="form-check-label" for="Skill_isactive">Active</label>
+                    </div>
+                    <br><br><br>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <br><br><br>
+                    <a target="_self" href="/Admin/Skills">
+                        <button type="button" class="btn btn-link m-2">Back to list</button>
+                    </a>
+                </form>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
