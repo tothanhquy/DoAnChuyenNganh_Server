@@ -67,7 +67,9 @@
     ,"post_content_constraint":"Chiều dài Nội dung tối thiểu 1 và tối đa {{length}} ký tự."
     ,"post_not_exist":"Bài viết không tồn tại."
 
-
+    ,"user_receive_unvalid":"Người nhận không hợp lệ."
+    ,"user_receive_was_friend":"Người nhận đã là bạn bè trước đó."
+    ,"friend_request_was_sent_before":"Bạn đã gửi yêu cầu kết bạn trước đó."
 
 
 }

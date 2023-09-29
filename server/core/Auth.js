@@ -171,7 +171,7 @@ module.exports.SetAuth = (id, userData, res) => {
         const token = jwt.sign({user}, JWT_SECRET);
         // console.log(token);
         res.cookie('auth', token, {
-            maxAge: COOKIE_LIFE, // Expires in 1 hour
+            maxAge: COOKIE_LIFE,
             httpOnly: true,
             secure: false,//https if true
             sameSite: 'strict'

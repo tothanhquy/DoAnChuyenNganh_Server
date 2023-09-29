@@ -66,6 +66,9 @@
     
     ,"post_content_constraint":"Minimum Content length 1 and Maximum Content length {{length}} characters."
     ,"post_not_exist":"Post is not exist."
-
+    
+    ,"user_receive_unvalid":"User receive is unvalid."
+    ,"user_receive_was_friend":"User receive was already friend."
+    ,"friend_request_was_sent_before":"You sent add friend request before."
 
 }

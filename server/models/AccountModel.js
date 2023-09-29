@@ -69,6 +69,10 @@ var AccountSchema = new mongoose.Schema({
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Skills' }],
         default:[]
     },
+    Friends: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Accounts' }],
+        default:[]
+    },
  })  
   
  //here we saving our collectionSchema with the name user in database  

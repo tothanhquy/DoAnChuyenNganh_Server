@@ -63,6 +63,9 @@ app.use('/Request', requestRouter);
 var postRouter = require('./routes/PostRouter');
 app.use('/Post', postRouter);
 
+var friendRouter = require('./routes/FriendRouter');
+app.use('/Friend', friendRouter);
+
 
 
 
