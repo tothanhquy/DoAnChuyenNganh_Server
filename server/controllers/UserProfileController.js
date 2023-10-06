@@ -172,7 +172,9 @@ var UserProfileController = {
                 clientResponse.relationship = AccountProfileResponse.Relationship.UserLogin;
                 //friend
 
-                //clientResponse.relationship += "|" + AccountProfileResponse.Relationship.Friend;
+                if(account.Friends.indexOf(ownAccount.id)!=-1){
+                    clientResponse.relationship += "|" + AccountProfileResponse.Relationship.Friend;
+                }
                 
                 //leader
                 clientResponse.relationship += "|" + AccountProfileResponse.Relationship.Leader;

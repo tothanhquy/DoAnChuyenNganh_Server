@@ -384,7 +384,67 @@ var FriendController = {
             res.json(Controller.Fail(Message(req.lang,"system_error")));   
         }  
     },
+    //http post, authen
+    CancelFriend : async function(req,res){  
+        try {
+            let idAccount = req.user.id;
 
+            let friendId = req.body.friend_id;
+
+            if(idAccount == friendId){
+                res.json(Controller.Fail(Message(req.lang,"user_receive_unvalid")));
+                return;
+            }
+
+            //check exit friend
+            let resAction = await AccountModel.getDataById(friendId,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(Message(req.lang,"user_receive_unvalid")));
+                return;
+            }
+            let friendUser = resAction.data;
+
+            //check friend list
+            resAction = await AccountModel.getDataById(idAccount,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(Message(req.lang,"system_error")));
+                return;
+            }
+            let ownUser = resAction.data;
+            if(ownUser.Friends.indexOf(friendId)==-1 && friendUser.Friends.indexOf(idAccount)==-1){
+                res.json(Controller.Fail(Message(req.lang,"user_receive_was_not_friend")));
+                return;
+            }
+            
+            //update from friend user
+            let ind = friendUser.Friends.indexOf(idAccount);
+            if (ind !== -1) {
+                friendUser.Friends.splice(ind, 1);
+                resAction = await AccountModel.updateAccount(friendUser._id, friendUser,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));   
+                    return;
+                }
+            }
+            
+            //update from own user
+            ind = ownUser.Friends.indexOf(friendId);
+            if (ind !== -1) {
+                ownUser.Friends.splice(ind, 1);
+                resAction = await AccountModel.updateAccount(ownUser._id, ownUser,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));   
+                    return;
+                }
+            }
+            res.json(Controller.Success({ isComplete: true}));  
+            return;
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
 }  
 
 module.exports = FriendController;

@@ -70,6 +70,6 @@
     ,"user_receive_unvalid":"Người nhận không hợp lệ."
     ,"user_receive_was_friend":"Người nhận đã là bạn bè trước đó."
     ,"friend_request_was_sent_before":"Bạn đã gửi yêu cầu kết bạn trước đó."
-
+    ,"user_receive_was_not_friend":"Người dùng chưa là bạn bè trước đó."
 
 }

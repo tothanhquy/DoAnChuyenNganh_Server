@@ -70,5 +70,6 @@
     ,"user_receive_unvalid":"User receive is unvalid."
     ,"user_receive_was_friend":"User receive was already friend."
     ,"friend_request_was_sent_before":"You sent add friend request before."
+    ,"user_receive_was_not_friend":"User was not a your friend before."
 
 }
