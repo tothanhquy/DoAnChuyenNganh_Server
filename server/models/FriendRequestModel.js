@@ -62,7 +62,7 @@ module.exports.checkAndGetRequestByUser = async (userSendId,userReceiveId,langua
 }
 module.exports.getRequestsPopulateLimit = async (conditions,populateUser,limit,languageMessage)=>{
     try {
-        let resAction = await RequestModel.find(conditions).select("-Content").sort({RequestTime:-1}).populate(populateUser).limit(limit);
+        let resAction = await FriendRequestModel.find(conditions).select("-Content").sort({RequestTime:-1}).populate(populateUser).limit(limit);
         return ModelResponse.Success(resAction);
             
     } catch (err) {
@@ -70,7 +70,7 @@ module.exports.getRequestsPopulateLimit = async (conditions,populateUser,limit,l
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
-module.exports.create = async function(newRequest,languageMessage){ 
+module.exports.createFriendRequest = async function(newRequest,languageMessage){ 
     try {
         const request = new FriendRequestModel({
             Content: newRequest.Content,
@@ -78,7 +78,7 @@ module.exports.create = async function(newRequest,languageMessage){
             ReceiveUser: newRequest.ReceiveUser,
             RequestTime: newRequest.RequestTime
         });  
-        resAction = await FriendRequestModel.create(request);
+        let resAction = await FriendRequestModel.create(request);
         return ModelResponse.Success({id:resAction._id});
     } catch (err) {
         console.log(err);

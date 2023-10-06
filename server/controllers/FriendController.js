@@ -30,11 +30,12 @@ var FriendController = {
                     select: '_id Name Avatar'
                 });
             
-            friends = account.Friends.map(a=> FriendModelResponse.FriendListItem(a._id,a.Name,a.Avatar));
+            friends = account.Friends.map(a=> new FriendModelResponse.FriendListItem(a._id,a.Name,a.Avatar));
             
             res.json(Controller.Success({ friends:friends }));  
         }  
         catch (error) {  
+            console.log(error)
             res.json(Controller.Fail(Message(req.lang, "system_error")));  
         }  
     },
@@ -96,7 +97,7 @@ var FriendController = {
                     RequestTime: Date.now() 
                 };   
 
-                resAction = await FriendRequestModel.create(requestModel,req.lang); 
+                resAction = await FriendRequestModel.createFriendRequest(requestModel,req.lang); 
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));
                     return;
@@ -105,7 +106,7 @@ var FriendController = {
                     return;
                 }
                 
-            }else if(friendRequest.SendUser === idAccount){
+            }else if(friendRequest.SendUser.toString() === idAccount){
                 //duplicate
                 res.json(Controller.Fail(Message(req.lang,"friend_request_was_sent_before")));
                 return;
@@ -207,10 +208,10 @@ var FriendController = {
                 timePrevious = queryRequests[queryRequests.length - 1].RequestTime;
             }
 
-            if(method==="send"){
-                requests = queryRequests.map((a)=> new FriendModelResponse.FriendRequestsItem(a._id,a.SendUser._id,a.SendUser.Name,a.SendUser.Avater,a.RequestTime));
+            if(method==="receive"){
+                requests = queryRequests.map((a)=> new FriendModelResponse.FriendRequestsItem(a._id,a.SendUser._id,a.SendUser.Name,a.SendUser.Avatar,a.RequestTime));
             }else{
-                requests = queryRequests.map((a)=> new FriendModelResponse.FriendRequestsItem(a._id,a.ReceiveUser._id,a.ReceiveUser.Name,a.ReceiveUser.Avater,a.RequestTime));
+                requests = queryRequests.map((a)=> new FriendModelResponse.FriendRequestsItem(a._id,a.ReceiveUser._id,a.ReceiveUser.Name,a.ReceiveUser.Avatar,a.RequestTime));
             }
             
             res.json(Controller.Success(new FriendModelResponse.FriendRequests(
@@ -220,6 +221,7 @@ var FriendController = {
             )));  
         }  
         catch (error) {  
+            console.log(error)
             res.json(Controller.Fail(Message(req.lang, "system_error")));  
         }  
     },
@@ -241,7 +243,7 @@ var FriendController = {
                 select: '_id Name Avatar'
             };
             
-            let queryRequest = await RequestModel.findOne({ _id: requestId }).populate(populateUser);
+            let queryRequest = await FriendRequestModel.findOne({ _id: requestId }).populate(populateUser);
             if (queryRequest == null) {
                 res.json(Controller.Fail(Message(req.lang,"request_not_exist")));
                 return;
@@ -252,7 +254,7 @@ var FriendController = {
                     res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                     return; 
                 }
-                res.json(Controller.Success(new FriendModelResponse.FriendRequest(queryRequest._id.toString(),queryRequest.Content,queryRequest.SendUser._id.toString(),queryRequest.SendUser.Name,queryRequest.SendUser.Avatar,queryRequest.RequestTime))); 
+                res.json(Controller.Success(new FriendModelResponse.FriendRequest(queryRequest._id.toString(),queryRequest.Content,queryRequest.ReceiveUser._id.toString(),queryRequest.ReceiveUser.Name,queryRequest.ReceiveUser.Avatar,queryRequest.RequestTime))); 
                 return;
             }else{
                 if (queryRequest.ReceiveUser._id.toString() != idAccount) {
@@ -273,9 +275,9 @@ var FriendController = {
         try {  
             let idAccount = req.user.id;
 
-            let requestId = req.query.request_id;
-            let method = req.query.method;
-            let response = req.query.response;
+            let requestId = req.body.request_id;
+            let method = req.body.method;
+            let response = req.body.response;
 
             if (
                     !(method === "send" && response === "cancel" 
@@ -291,7 +293,7 @@ var FriendController = {
                 select: '_id Name Avatar'
             };
             
-            let queryRequest = await RequestModel.findOne({ _id: requestId }).populate(populateUser);
+            let queryRequest = await FriendRequestModel.findOne({ _id: requestId }).populate(populateUser);
             if (queryRequest == null) {
                 res.json(Controller.Fail(Message(req.lang,"request_not_exist")));
                 return;
@@ -355,7 +357,7 @@ var FriendController = {
                     }
                     
                     //delete old request
-                    resAction = await FriendRequestModel.delete(req.lang, friendRequest._id);
+                    resAction = await FriendRequestModel.delete(req.lang, queryRequest._id);
                     if (resAction.status == ModelResponse.ResStatus.Fail) {
                         res.json(Controller.Fail(resAction.error));   
                         return;

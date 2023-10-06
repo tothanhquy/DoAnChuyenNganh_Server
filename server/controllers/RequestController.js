@@ -219,7 +219,6 @@ var RequestController = {
                 if (!isFinish) queryRequests.splice(GET_LIST_LIMIT_REQUESTS, 1);
                 timePrevious = queryRequests[queryRequests.length - 1].RequestTime;
             }
-            
             res.json(Controller.Success(new RequestResponse.RequestsListObject(
                 viewer,
                 method,
