@@ -72,4 +72,11 @@
     ,"friend_request_was_sent_before":"You sent add friend request before."
     ,"user_receive_was_not_friend":"User was not a your friend before."
 
+    ,"chanel_chat_name_constraint":"Minimum chanel chat length 1 and maximum {{length}} characters."
+    ,"chanel_chat_not_exist":"Chanel chat is not exist."
+    ,"friend_chanel_chat_has_exist":"Friend chanel chat has exist."
+    ,"new_group_owner_unvalid":"New group owner, you choose, is unvalid."
+
+    ,"message_content_constraint":"Minimum message length 1 and maximum {{length}} characters."
+    ,"message_not_exist":"Message is not exist."
 }

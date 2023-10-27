@@ -33,7 +33,12 @@ app.use(session({
   saveUninitialized: true  // save new sessions that haven't been modified
 }));
 
+//socket.io
+var server = require("http").Server(app);
+var socketio = require("socket.io")(server);
+
 app.use(function(req, res, next) {
+  req.io = socketio;
   req.lang = req.cookies.lang || 'vi';
   next();
 });
@@ -85,5 +90,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
 
 module.exports = app;

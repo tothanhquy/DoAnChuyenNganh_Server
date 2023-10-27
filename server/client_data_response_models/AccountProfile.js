@@ -70,6 +70,7 @@ module.exports.Relationship = {
 };
 class GuestProfile{
     relationship;
+    chanelChat;
     avatar;
     info;
     skills=[];

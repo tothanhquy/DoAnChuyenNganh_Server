@@ -171,9 +171,12 @@ var UserProfileController = {
                 //user login
                 clientResponse.relationship = AccountProfileResponse.Relationship.UserLogin;
                 //friend
-
-                if(account.Friends.indexOf(ownAccount.id)!=-1){
+                let indexOfFriend = account.Friends.findIndex((e)=> e.User.toString() == ownAccount.id);
+                if(indexOfFriend!=-1){
                     clientResponse.relationship += "|" + AccountProfileResponse.Relationship.Friend;
+                    clientResponse.chanelChat = account.Friends[indexOfFriend].ChanelChat;
+                }else{
+                    clientResponse.chanelChat = null;
                 }
                 
                 //leader

@@ -66,6 +66,7 @@ class TeamDetails{
     relationship;
     members=[];
     skills=[];
+    chanelChatId;
     constructor(
         teamId,
         teamName,
@@ -77,6 +78,7 @@ class TeamDetails{
         description,
         internalInfo,
         relationship,
+        chanelChatId,
     ) {
         this.teamId=teamId;
         this.teamName=teamName;
@@ -88,6 +90,7 @@ class TeamDetails{
         this.description=description;
         this.internalInfo=internalInfo;
         this.relationship=relationship;
+        this.chanelChatId=chanelChatId;
     }
 }
 module.exports.TeamDetails = TeamDetails;

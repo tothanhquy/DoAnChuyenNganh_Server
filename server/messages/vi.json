@@ -72,4 +72,11 @@
     ,"friend_request_was_sent_before":"Bạn đã gửi yêu cầu kết bạn trước đó."
     ,"user_receive_was_not_friend":"Người dùng chưa là bạn bè trước đó."
 
+    ,"chanel_chat_name_constraint":"Chiều dài Kênh chat tối thiểu 1 và tối đa {{length}} ký tự."
+    ,"chanel_chat_not_exist":"Kênh chat không tồn tại."
+    ,"friend_chanel_chat_has_exist":"Kênh chat bạn bè đã tồn tại."
+    ,"new_group_owner_unvalid":"Chủ kênh mới không hợp lệ."
+
+    ,"message_content_constraint":"Chiều dài tin nhắn tối thiểu 1 và tối đa {{length}} ký tự."
+    ,"message_not_exist":"Tin nhắn không tồn tại."
 }

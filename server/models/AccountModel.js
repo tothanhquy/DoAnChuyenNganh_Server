@@ -70,7 +70,10 @@ var AccountSchema = new mongoose.Schema({
         default:[]
     },
     Friends: {
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Accounts' }],
+        type: [{
+            User: { type: mongoose.Schema.Types.ObjectId, ref: 'Accounts' },
+            ChanelChat: {type: mongoose.Schema.Types.ObjectId, ref: 'ChanelChats'}
+        }],
         default:[]
     },
  })  

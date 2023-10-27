@@ -35,7 +35,13 @@ var TeamSchema = new mongoose.Schema({
     BanTime: {
         type: Number,
         default:0
-    }
+    },
+    ChanelChat: {
+        type: mongoose.Schema.Types.ObjectId,
+        required:false,
+        default:null,
+        ref: 'ChanelChats' 
+    },
  })  
   
  //here we saving our collectionSchema with the name user in database  

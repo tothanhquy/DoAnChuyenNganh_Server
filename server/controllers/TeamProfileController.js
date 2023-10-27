@@ -3,6 +3,7 @@ const Message = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
 var TeamModel = require('../models/TeamModel');  
 var AccountModel = require('../models/AccountModel');  
+var ChanelChatModel = require('../models/ChanelChatModel');  
 var Auth = require('../core/Auth');  
 const Mail = require('../core/Mail');
 var Controller = require('./Controller');
@@ -51,6 +52,22 @@ var TeamController = {
                     res.json(Controller.Fail(resAction.error));
                     return;
                 }
+                //create team chanel chat
+                resAction = await ChanelChatModel.createTeamChanelChat(newTeamid,req.lang);
+                let chanelChat = resAction.data;
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));
+                    return;
+                }
+
+                let editTeam = queryTeam;
+                editTeam.ChanelChat = chanelChat.id;
+                resAction = await TeamModel.updateTeam(newTeamid, editTeam,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));   
+                    return;
+                }
+
                 queryTeam = await queryTeam.populate(
                     {
                         path: 'Leader',
@@ -275,6 +292,7 @@ var TeamController = {
             team.maxim = queryTeam.Maxim;
             team.description = queryTeam.Description;
             
+            
             //get member
             let members = [];
 
@@ -334,6 +352,7 @@ var TeamController = {
                 if (checkMemberIndex !== -1) {
                     team.relationship+='.'+TeamProfileResponse.Relationship.Member;
                     team.internalInfo = queryTeam.InternalInfo;
+                    team.chanelChatId = queryTeam.ChanelChat;
                 }
 
             }

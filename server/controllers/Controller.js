@@ -191,4 +191,5 @@ module.exports.Constant = {
     CV_PDF_FILE_LIMIT_KB : 1024*5 // 5 mb
     ,USER_AVATAR_FILE_LIMIT_KB : 1024*5 // 5 mb
     ,TEAM_AVATAR_FILE_LIMIT_KB : 1024*5 // 5 mb
+    ,GROUP_CHAT_AVATAR_FILE_LIMIT_KB : 1024*5 // 5 mb
 }

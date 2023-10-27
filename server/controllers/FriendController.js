@@ -2,6 +2,7 @@ const Message = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
 const FriendModelResponse = require('../client_data_response_models/Friend');
 var AccountModel = require('../models/AccountModel');  
+var ChanelChatModel = require('../models/ChanelChatModel');  
 var FriendRequestModel = require('../models/FriendRequestModel');  
 var Controller = require('./Controller');
 
@@ -26,11 +27,11 @@ var FriendController = {
 
             account = await account.populate(
                 {
-                    path: 'Friends',
+                    path: 'Friends.User',
                     select: '_id Name Avatar'
                 });
             
-            friends = account.Friends.map(a=> new FriendModelResponse.FriendListItem(a._id,a.Name,a.Avatar));
+            friends = account.Friends.map(a=> new FriendModelResponse.FriendListItem(a.User._id,a.User.Name,a.User.Avatar));
             
             res.json(Controller.Success({ friends:friends }));  
         }  
@@ -75,7 +76,7 @@ var FriendController = {
             }
             let friends = resAction.data.Friends;
             let sendUser = resAction.data;
-            if(friends.indexOf(userReceiveId)!=-1){
+            if(friends.findIndex((e)=>e.User.toString()==userReceiveId)!=-1){
                 res.json(Controller.Fail(Message(req.lang,"user_receive_was_friend")));
                 return;
             }
@@ -113,9 +114,29 @@ var FriendController = {
             }else{
                 // surely (friendRequest.SendUser === userReceiveId)
                 //complete
-                if(receiveUser.Friends.indexOf(idAccount)==-1){
+                //get exist friend chanel
+                resAction = await ChanelChatModel.checkAndGetFriendChanelChatOfUser(idAccount,receiveUser._id,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));   
+                    return;
+                }
+                let chanelChatId = resAction.data;
+                if(chanelChatId==null){
+                    //create chanel chat
+                    resAction = await ChanelChatModel.createFriendChanelChat(idAccount,receiveUser._id,req.lang);
+                    if (resAction.status == ModelResponse.ResStatus.Fail) {
+                        res.json(Controller.Fail(resAction.error));   
+                        return;
+                    }
+                    chanelChatId = resAction.data.id;
+                }
+
+                if(receiveUser.Friends.findIndex((e)=> e.User.toString()==idAccount)==-1){
                     //add
-                    receiveUser.Friends.push(sendUser._id);
+                    receiveUser.Friends.push({
+                        User: sendUser._id,
+                        ChanelChat: chanelChatId,
+                    });
 
                     //update from receive user
                     resAction = await AccountModel.updateAccount(receiveUser._id, receiveUser,req.lang);
@@ -126,9 +147,12 @@ var FriendController = {
                     
                 }
 
-                if(sendUser.Friends.indexOf(receiveUser._id)==-1){
+                if(sendUser.Friends.findIndex((e)=> e.User.toString()==receiveUser._id)==-1){
                     //add
-                    sendUser.Friends.push(receiveUser._id);
+                    sendUser.Friends.push({
+                        User: receiveUser._id,
+                        ChanelChat: chanelChatId,
+                    });
                 
                     //update from send user
                     resAction = await AccountModel.updateAccount(sendUser._id, sendUser,req.lang);
@@ -331,9 +355,29 @@ var FriendController = {
                     let receiveUser = resAction.data;
 
                     //complete
-                    if(receiveUser.Friends.indexOf(sendUser._id)==-1){
+                    //get exist friend chanel
+                    resAction = await ChanelChatModel.checkAndGetFriendChanelChatOfUser(idAccount,receiveUser._id,req.lang);
+                    if (resAction.status == ModelResponse.ResStatus.Fail) {
+                        res.json(Controller.Fail(resAction.error));   
+                        return;
+                    }
+                    let chanelChatId = resAction.data;
+                    if(chanelChatId==null){
+                        //create chanel chat
+                        resAction = await ChanelChatModel.createFriendChanelChat(idAccount,receiveUser._id,req.lang);
+                        if (resAction.status == ModelResponse.ResStatus.Fail) {
+                            res.json(Controller.Fail(resAction.error));   
+                            return;
+                        }
+                        chanelChatId = resAction.data.id;
+                    }
+
+                    if(receiveUser.Friends.findIndex((e)=> e.User.toString()==sendUser._id)==-1){
                         //add
-                        receiveUser.Friends.push(sendUser._id);
+                        receiveUser.Friends.push({
+                            User: sendUser._id,
+                            ChanelChat: chanelChatId,
+                        });
 
                         //update from receive user
                         resAction = await AccountModel.updateAccount(receiveUser._id, receiveUser,req.lang);
@@ -344,9 +388,12 @@ var FriendController = {
                         
                     }
 
-                    if(sendUser.Friends.indexOf(receiveUser._id)==-1){
+                    if(sendUser.Friends.findIndex((e)=> e.User.toString()==receiveUser._id)==-1){
                         //add
-                        sendUser.Friends.push(receiveUser._id);
+                        sendUser.Friends.push({
+                            User: receiveUser._id,
+                            ChanelChat: chanelChatId,
+                        });
                     
                         //update from send user
                         resAction = await AccountModel.updateAccount(sendUser._id, sendUser,req.lang);
@@ -413,13 +460,13 @@ var FriendController = {
                 return;
             }
             let ownUser = resAction.data;
-            if(ownUser.Friends.indexOf(friendId)==-1 && friendUser.Friends.indexOf(idAccount)==-1){
+            if(ownUser.Friends.findIndex((e)=> e.User.toString()==friendId)==-1 && friendUser.Friends.findIndex((e)=> e.User.toString()==idAccount)==-1){
                 res.json(Controller.Fail(Message(req.lang,"user_receive_was_not_friend")));
                 return;
             }
             
             //update from friend user
-            let ind = friendUser.Friends.indexOf(idAccount);
+            let ind = friendUser.Friends.findIndex((e)=> e.User.toString()==idAccount);
             if (ind !== -1) {
                 friendUser.Friends.splice(ind, 1);
                 resAction = await AccountModel.updateAccount(friendUser._id, friendUser,req.lang);
@@ -430,7 +477,7 @@ var FriendController = {
             }
             
             //update from own user
-            ind = ownUser.Friends.indexOf(friendId);
+            ind = ownUser.Friends.findIndex((e)=> e.User.toString()==friendId);
             if (ind !== -1) {
                 ownUser.Friends.splice(ind, 1);
                 resAction = await AccountModel.updateAccount(ownUser._id, ownUser,req.lang);
