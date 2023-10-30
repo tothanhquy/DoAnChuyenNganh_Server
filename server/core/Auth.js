@@ -50,13 +50,11 @@ module.exports.AuthenUser = async (req, res, next) => {
             }
         }
 
-        
-
-        
     } catch (err) {
         res.json(Controller.Fail(Message(req.lang,"system_error")));
     }
 };
+ 
 module.exports.AuthenAdmin = async (req, res, next) => {
     try {
         //get jwt from cookie
@@ -122,36 +120,37 @@ module.exports.CheckAndGetAuthenUser = async (req) => {
         if (!token) {
             return false;
         } else {
-            let verifyData = await JWTVerify(token, JWT_SECRET);
-            if (verifyData === false) {
-                return false;
-            } else {
-                let id = verifyData.id;
-                let accessTokenString = verifyData.accessToken;
+            return await checkAndGetAuthJWT(token);
+            // let verifyData = await JWTVerify(token, JWT_SECRET);
+            // if (verifyData === false) {
+            //     return false;
+            // } else {
+            //     let id = verifyData.id;
+            //     let accessTokenString = verifyData.accessToken;
         
-                //check in db
-                let resAction = await AccountModel.getDataById(id, req.lang); 
-                let account = resAction.data;
-                if (
-                    resAction.status === ModelResponse.ResStatus.Fail
-                    || account.AccessTokens.indexOf(accessTokenString) ===-1
-                    || account.BanTime > Date.now()
-                ) {
-                    return false;
-                }else{
-                    let accessTokenOj = decodeAccessToken(accessTokenString);
-                    if (accessTokenOj.time + ACCESS_TOKEN_LIFE < Date.now()) {
-                        return false;
-                    } else {
-                        let result = verifyData;
-                        result.userData.name = account.Name;
-                        return result;
+            //     //check in db
+            //     let resAction = await AccountModel.getDataById(id, req.lang); 
+            //     let account = resAction.data;
+            //     if (
+            //         resAction.status === ModelResponse.ResStatus.Fail
+            //         || account.AccessTokens.indexOf(accessTokenString) ===-1
+            //         || account.BanTime > Date.now()
+            //     ) {
+            //         return false;
+            //     }else{
+            //         let accessTokenOj = decodeAccessToken(accessTokenString);
+            //         if (accessTokenOj.time + ACCESS_TOKEN_LIFE < Date.now()) {
+            //             return false;
+            //         } else {
+            //             let result = verifyData;
+            //             result.userData.name = account.Name;
+            //             return result;
                         
-                    }
+            //         }
             
-                }
+            //     }
                 
-            }
+            // }
         }
 
         
@@ -161,6 +160,39 @@ module.exports.CheckAndGetAuthenUser = async (req) => {
         return false;
     }
 };
+const checkAndGetAuthJWT = async (jwt)=>{
+    let verifyData = await JWTVerify(jwt, JWT_SECRET);
+    if (verifyData === false) {
+        return false;
+    } else {
+        let id = verifyData.id;
+        let accessTokenString = verifyData.accessToken;
+
+        //check in db
+        let resAction = await AccountModel.getDataById(id, req.lang); 
+        let account = resAction.data;
+        if (
+            resAction.status === ModelResponse.ResStatus.Fail
+            || account.AccessTokens.indexOf(accessTokenString) ===-1
+            || account.BanTime > Date.now()
+        ) {
+            return false;
+        }else{
+            let accessTokenOj = decodeAccessToken(accessTokenString);
+            if (accessTokenOj.time + ACCESS_TOKEN_LIFE < Date.now()) {
+                return false;
+            } else {
+                let result = verifyData;
+                result.userData.name = account.Name;
+                return result;
+                
+            }
+    
+        }
+        
+    }
+}
+module.exports.checkAndGetAuthJWT = checkAndGetAuthJWT;
 //return accessTokenString
 module.exports.SetAuth = (id, userData, res) => {
     try {

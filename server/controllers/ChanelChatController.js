@@ -1,8 +1,8 @@
 const Message = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
 var ChanelChatModel = require('../models/ChanelChatModel');  
-var AccountModel = require('../models/AccountModel');  
-var ChanelChatModel = require('../models/ChanelChatModel');  
+var ChanelChatSocket = require('../controllers/Socket/ChanelChatSocket');  
+var AccountModel = require('../models/AccountModel');
 var Controller = require('./Controller');
 const ChanelChatResponse = require("../client_data_response_models/ChanelChat");
 
@@ -36,7 +36,6 @@ var ChanelChatController = {
                 Image: "",
                 Members: [accountOwn._id],
                 GroupOwner: accountOwn._id,
-                LastTime: 0,
             };   
             resAction = await ChanelChatModel.createGroupChanelChat(chanelChatModel,req.lang); 
             if (resAction.status == ModelResponse.ResStatus.Fail) {
@@ -72,34 +71,36 @@ var ChanelChatController = {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
-            let chanelChats = resAction.data.filter(e=> e.Type!==ChanelChatModel.ChanelChatType.Team || e.Team.Members.indexOf(idAccount)) || [];
+            let chanelChats = resAction.data;
             let resChanelChats = [];
             chanelChats.forEach((e)=>{
+                let indexInUsersSeen = e.LastTimeMemberSeen.findIndex((us)=>us.User.toString()==idAccount);
+                let numberOfNewMessages = indexInUsersSeen==-1?0:e.LastTimeMemberSeen[indexInUsersSeen].Number;
                 if(e.Type==ChanelChatModel.ChanelChatType.Friend){
                     let friend = e.Members[0]._id.toString()==idAccount?e.Members[1]:e.Members[0];
                     if(myfriends.indexOf(friend._id)==-1){
                         //unfriend
                         resChanelChats.push(
                             new ChanelChatResponse.ChanelChatsItem(
-                                ChanelChatModel.ChanelChatType.Friend, e._id, "-Undefined Person-","",e.LastTime,e.LastMessage
+                                ChanelChatModel.ChanelChatType.Friend, e._id, "-Undefined Person-","",e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
                             ));
                     }else{
                         resChanelChats.push(
                             new ChanelChatResponse.ChanelChatsItem(
-                                ChanelChatModel.ChanelChatType.Friend, e._id, friend.Name ,friend.Avatar,e.LastTime,e.LastMessage
+                                ChanelChatModel.ChanelChatType.Friend, e._id, friend.Name ,friend.Avatar,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
                             ));
                     }
                     
                 }else if(e.Type==ChanelChatModel.ChanelChatType.Group){
                     resChanelChats.push(
                         new ChanelChatResponse.ChanelChatsItem(
-                            ChanelChatModel.ChanelChatType.Group, e._id, e.Name, e.Image, e.LastTime, e.LastMessage
+                            ChanelChatModel.ChanelChatType.Group, e._id, e.Name, e.Image, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
                         ));
                 }else {
                     //team
                     resChanelChats.push(
                         new ChanelChatResponse.ChanelChatsItem(
-                            ChanelChatModel.ChanelChatType.Team, e._id, e.Team.Name, e.Team.Avatar, e.LastTime, e.LastMessage
+                            ChanelChatModel.ChanelChatType.Team, e._id, e.Team.Name, e.Team.Avatar, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
                         ));
                 }
             });
@@ -122,13 +123,13 @@ var ChanelChatController = {
             }
 
             //check account in members
-            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let resAction = await ChanelChatModel.getDataByIdPopulateMembers(idChanelChat,req.lang);
             let queryChanelChat = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
-            if(queryChanelChat.Members.indexOf(idAccount)==-1){
+            if(!isMemberOfChanelChat(idAccount,queryChanelChat.Members)){
                 //not a member of group
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
@@ -152,25 +153,25 @@ var ChanelChatController = {
                     //unfriend
                     resChanelChat=
                         new ChanelChatResponse.ChanelChatDetails(
-                            ChanelChatModel.ChanelChatType.Friend, queryChanelChat._id, "-Undefined Person-","",queryChanelChat.LastTime,queryChanelChat.LastMessage
+                            ChanelChatModel.ChanelChatType.Friend, queryChanelChat._id, "-Undefined Person-","",queryChanelChat.LastMessage.Time,queryChanelChat.LastMessage.Content
                         );
                 }else{
                     resChanelChat=
                         new ChanelChatResponse.ChanelChatDetails(
-                            ChanelChatModel.ChanelChatType.Friend, queryChanelChat._id, friend.Name ,friend.Avatar,queryChanelChat.LastTime,queryChanelChat.LastMessage
+                            ChanelChatModel.ChanelChatType.Friend, queryChanelChat._id, friend.Name ,friend.Avatar,queryChanelChat.LastMessage.Time,queryChanelChat.LastMessage.Content
                         );
                 }
                 
             }else if(queryChanelChat.Type==ChanelChatModel.ChanelChatType.Group){
                 resChanelChat=
                     new ChanelChatResponse.ChanelChatDetails(
-                        ChanelChatModel.ChanelChatType.Group, queryChanelChat._id, queryChanelChat.Name, queryChanelChat.Image, queryChanelChat.LastTime, queryChanelChat.LastMessage, isGroupOwner
+                        ChanelChatModel.ChanelChatType.Group, queryChanelChat._id, queryChanelChat.Name, queryChanelChat.Image, queryChanelChat.LastMessage.Time, queryChanelChat.LastMessage.Content, isGroupOwner
                     );
             }else {
                 //team
                 resChanelChat=
                     new ChanelChatResponse.ChanelChatDetails(
-                        ChanelChatModel.ChanelChatType.Team, queryChanelChat._id, queryChanelChat.Team.Name, queryChanelChat.Team.Avatar, queryChanelChat.LastTime, queryChanelChat.LastMessage
+                        ChanelChatModel.ChanelChatType.Team, queryChanelChat._id, queryChanelChat.Team.Name, queryChanelChat.Team.Avatar, queryChanelChat.LastMessage.Time, queryChanelChat.LastMessage.Content
                     );
             }
             res.json(Controller.Success({resChanelChat}));  
@@ -214,7 +215,8 @@ var ChanelChatController = {
             
             editChanelChat.Name = newName;
             //update
-            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, editChanelChat,req.lang);
+            let updateFields = {$set:{Name:editChanelChat.Name}};
+            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;
@@ -282,7 +284,8 @@ var ChanelChatController = {
                     editChanelChat.Image = avatarPath;
 
                     //update
-                    resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, editChanelChat,req.lang);
+                    let updateFields = {$set:{Image:editChanelChat.Image}};
+                    resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
                     if (resAction.status == ModelResponse.ResStatus.Fail) {
                         res.json(Controller.Fail(resAction.error));   
                         return;
@@ -336,7 +339,8 @@ var ChanelChatController = {
             editChanelChat.Members.splice(memberDeleteIndex, 1);
             
             //update
-            resAction = await ChanelChatModel.updateChanelChat(idChanelChat, editChanelChat,req.lang);
+            let updateFields = {$set:{Members:editChanelChat.Members}};
+            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;
@@ -470,7 +474,7 @@ var ChanelChatController = {
                         return; 
                     }
                     //update new leader
-                    editChanelChat.Leader = idNewGroupOwner;
+                    editChanelChat.GroupOwner = idNewGroupOwner;
     
                     //exit member
                     let memberExitIndex = editChanelChat.Members.indexOf(idAccount);
@@ -480,7 +484,8 @@ var ChanelChatController = {
             }
             
             //update
-            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, editChanelChat,req.lang);
+            let updateFields = {$set:{Members:editChanelChat.Members, GroupOwner:editChanelChat.GroupOwner}};
+            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;
@@ -548,11 +553,199 @@ var ChanelChatController = {
             });
 
             //update
-            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, editChanelChat,req.lang);
+            let updateFields = {$set:{Members:editChanelChat.Members}};
+            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                res.json(Controller.Success({ isComplete: true }));  
+                return;
+            }
+          
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //not http. is tool for other controller 
+    //return list of id chanel chats. error is []
+    getIdChanelChatsOfUser: async (idUser) => {
+        try {
+            let idAccount = idUser;
+
+            let resAction = await ChanelChatModel.getChanelChatsOfUser(idAccount, req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return [];
+            }
+            let chanelChats = resAction.data.filter(e=> e.Type!==ChanelChatModel.ChanelChatType.Team || e.Team.Members.indexOf(idAccount)!=-1) || [];
+            let resIdChanelChats = [];
+            chanelChats.forEach((e)=>{
+                resIdChanelChats.push(e._id);
+            });
+            return resIdChanelChats;
+        }  
+        catch (error) {  
+            return [];
+        }  
+    },
+    //not http. is tool for other controller 
+    //return true or false
+    updateMembersOfTeamChanelChat: async (idChanelChat) => {
+        try {
+            if (idChanelChat == undefined || idChanelChat == "") {
+                return false; 
+            }
+
+            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let queryChanelChat = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return false;
+            }
+            if(!queryChanelChat.Type==ChanelChatModel.ChanelChatType.Team){
+                //not a team chanel chat
+                return true;
+            }
+            let membersOfTeam = queryChanelChat.Team.Members||[];
+            queryChanelChat.Members = membersOfTeam;
+
+            //update
+            let updateFields = {$set:{Members:queryChanelChat.Members}};
+            resAction = await ChanelChatModel.updateChanelChat(queryChanelChat._id, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return false;
+            } else {
+                return true;
+            }
+        }  
+        catch (error) {  
+            return false;
+        }  
+    },
+    //not http. is tool for other controller 
+    //return true or false
+    isMemberOfChanelChat: async (idUser, members) => {
+        try {
+            let membersId = members.map((e)=>e._id);
+            if(membersId.indexOf(idUser)==-1){
+                return false;
+            }else{
+                return true;
+            }
+        }  
+        catch (error) {  
+            return false;
+        }  
+    },
+    //not http. is tool for other controller 
+    //return true or false
+    updateLastMessageOfChanelChat: async (idChanelChat, idLastMassage, contentLastMessage, idCreator, numberOfNewMessages) => {
+        try {
+            if (idChanelChat == undefined || idChanelChat == "") {
+                return false; 
+            }
+
+            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let queryChanelChat = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return false;
+            }
+            if(queryChanelChat.Members.indexOf(idCreator)==-1){
+                //not a member of chanel chat
+                return false;
+            }
+            
+            queryChanelChat.LastMessage = idLastMassage;
+            
+            let notifiLastNewMessagesSocket=[];
+
+            queryChanelChat.Members.forEach((e)=>{
+                let ind = queryChanelChat.LastTimeMemberSeen.findIndex((l)=>l.User==e.toString());
+                if(ind==-1){
+                    //new
+                    queryChanelChat.LastTimeMemberSeen.push({
+                        User:e,
+                        Message: null,
+                        Number: e==idCreator?0:numberOfNewMessages,
+                    });
+                    ind = queryChanelChat.LastTimeMemberSeen.length-1;
+                }else{
+                    if(e==idCreator){
+                        queryChanelChat.LastTimeMemberSeen[ind].Number = 0;
+                    }else{
+                        queryChanelChat.LastTimeMemberSeen[ind].Number+=numberOfNewMessages;
+                    }
+                }
+                if(queryChanelChat.LastTimeMemberSeen[ind].Number!=0){
+                    notifiLastNewMessagesSocket.push(new ChanelChatResponse.LastNewMessageSocket(
+                        contentLastMessage,
+                        idChanelChat,
+                        e.toString(),
+                        queryChanelChat.LastTimeMemberSeen[ind].Number
+                    ));
+                }
+            });
+
+            //update
+            let updateFields = {$set:{LastMessage:queryChanelChat.LastMessage,LastTimeMemberSeen:queryChanelChat.LastTimeMemberSeen}};
+            resAction = await ChanelChatModel.updateChanelChat(queryChanelChat._id, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return false;
+            } else {
+                //send socket
+                ChanelChatSocket.notifiLastMessageForMembers(req.io, notifiLastNewMessagesSocket);
+
+
+                return true;
+            }
+        }  
+        catch (error) {  
+            return false;
+        }  
+    },
+    //http post, auth
+    UserSeen: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+            let idChanelChat = req.body.id_chanel_chat;
+
+            if (idChanelChat == undefined || idChanelChat == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            //check account in members
+            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let editChanelChat = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            if(editChanelChat.Members.indexOf(idAccount)==-1){
+                //not a member of group
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return;
+            }
+
+            let ind = editChanelChat.LastTimeMemberSeen.findIndex((l)=>l.User==idChanelChat);
+            if(ind==-1){
+                //do not thing
+            }else{
+                editChanelChat.LastTimeMemberSeen[ind].Number = 0;
+                editChanelChat.LastTimeMemberSeen[ind].Message = queryChanelChat.LastMessage;
+            }
+            
+            //update
+            let updateFields = {$set:{LastTimeMemberSeen:editChanelChat.LastTimeMemberSeen}};
+            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            } else {
+                //send socket
+                ChanelChatSocket.notifiUserSeen(req.io, idChanelChat, idAccount, queryChanelChat.LastMessage.toString());
+
                 res.json(Controller.Success({ isComplete: true }));  
                 return;
             }

@@ -1,5 +1,3 @@
-const bcrypt = require('bcrypt');
-
 const Message = require('../messages/Messages');
 var mongoose = require('./ConnectDatabase');
 const ModelResponse = require('./ModelResponse');
@@ -35,9 +33,18 @@ var MessageSchema = new mongoose.Schema({
  //AccountModel will contain the instance of the user for manipulating the data.  
 var MessageModel = module.exports = mongoose.model('Messages',MessageSchema,'Messages')  
 
-module.exports.getMessagesOfChanelChat = async (id_chanel_chat, last_time, limit, languageMessage)=>{
+module.exports.getMessagesHistory = async (id_chanel_chat, last_time, limit, languageMessage)=>{
     try {
-        let resAction = await MessageModel.find({"ChanelChat":Schema.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time}}).limit(limit).populate("Reply");
+        let resAction = await MessageModel.find({"ChanelChat":Schema.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time}}).sort({Time: -1}).limit(limit).populate("Owner").populate("Reply");
+        return ModelResponse.Success(resAction);
+            
+    } catch (err) {
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
+module.exports.getMessagesBetweenTime = async (id_chanel_chat, first_time, last_time, languageMessage)=>{
+    try {
+        let resAction = await MessageModel.find({"ChanelChat":Schema.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time, $gte: first_time}}).sort({Time: -1}).populate("Owner").populate("Reply");
         return ModelResponse.Success(resAction);
             
     } catch (err) {
@@ -46,7 +53,7 @@ module.exports.getMessagesOfChanelChat = async (id_chanel_chat, last_time, limit
 }
 module.exports.getDataById = async (id,languageMessage)=>{
     try {
-        let resAction = await MessageModel.findOne({ _id: id }).populate("Reply");
+        let resAction = await MessageModel.findOne({ _id: id });
         if (resAction == null) {
             return ModelResponse.Fail(Message(languageMessage,"message_not_exist")); 
         } else {
@@ -57,17 +64,10 @@ module.exports.getDataById = async (id,languageMessage)=>{
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
-module.exports.createMessage = async function(newMessage,languageMessage){ 
+module.exports.createMessages = async function(newMessages,languageMessage){ 
     try {
-        const Message = new MessageModel({
-            Content: newMessage.Content,
-            ChanelChat: newMessage.ChanelChat,
-            Reply: newMessage.Reply,
-            Owner: newMessage.Owner,
-            Time: newMessage.Time,
-        });  
-        resAction = await MessageModel.create(Message);
-        return ModelResponse.Success({id:resAction._id});
+        resAction = await MessageModel.insertMany(newMessages);
+        return ModelResponse.Success({newMessages:resAction});
     } catch (err) {
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
@@ -79,3 +79,4 @@ var isValidContent = module.exports.isValidContent = function(content="",languag
         return ModelValid.Invalid(Message(languageMessage,"message_content_constraint").replace('{{length}}',MAXIMUM_CONTENT_LENGTH ));
     }
 }
+module.exports.MAXIMUM_CONTENT_LENGTH = MAXIMUM_CONTENT_LENGTH;

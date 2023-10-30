@@ -41,14 +41,15 @@ var ChanelChatSchema = new mongoose.Schema({
         type: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams' },
         required:false
     },
-    LastTime: {
-        type: Number,
-        default:0
+    LastMessage:{type: mongoose.Schema.Types.ObjectId, ref: 'Messages',default:null},
+    LastTimeMemberSeen: {
+        type: [{ 
+            User:{type: mongoose.Schema.Types.ObjectId, ref: 'Accounts'} ,
+            Message:{type: mongoose.Schema.Types.ObjectId, ref: 'Messages', default:null} ,
+            Number:{type: Number, default: 0} ,
+        }],
+        default:[]
     },
-    LastMessage:{
-        type: String,
-        default:""
-    }
  })  
   
  //here we saving our collectionSchema with the name user in database  
@@ -58,12 +59,22 @@ var ChanelChatModel = module.exports = mongoose.model('ChanelChats',ChanelChatSc
 module.exports.getChanelChatsOfUser = async (id_user, languageMessage)=>{
     try {
         let resAction = await ChanelChatModel.find({
-            $or:[
-                {"Type": ChanelChatType.Team},
-                {"Members":{$elemMatch:Schema.Types.ObjectId(id_user)}}
-            ]
-        }).populate("Team").populate("Members");
+                "Members":{$elemMatch:Schema.Types.ObjectId(id_user)}
+        }).populate("Team").populate("Members").populate('LastMessage');
         return ModelResponse.Success(resAction);
+            
+    } catch (err) {
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
+module.exports.getDataByIdPopulateMembers = async (id,languageMessage)=>{
+    try {
+        let resAction = await ChanelChatModel.findOne({ _id: id }).populate("Team").populate("Members").populate('LastMessage');
+        if (resAction == null) {
+            return ModelResponse.Fail(Message(languageMessage,"chanel_chat_not_exist")); 
+        } else {
+            return ModelResponse.Success(resAction);
+        }
             
     } catch (err) {
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
@@ -71,7 +82,7 @@ module.exports.getChanelChatsOfUser = async (id_user, languageMessage)=>{
 }
 module.exports.getDataById = async (id,languageMessage)=>{
     try {
-        let resAction = await ChanelChatModel.findOne({ _id: id }).populate("Team").populate("Members");
+        let resAction = await ChanelChatModel.findOne({ _id: id }).populate("Team").populate('LastMessage');
         if (resAction == null) {
             return ModelResponse.Fail(Message(languageMessage,"chanel_chat_not_exist")); 
         } else {
@@ -111,7 +122,6 @@ module.exports.createGroupChanelChat = async function(newChanelChat,languageMess
             Members: newChanelChat.Members,
             GroupOwner: newChanelChat.GroupOwner,
             Team: null,
-            LastTime: 0,
         });  
         resAction = await ChanelChatModel.create(ChanelChat);
         return ModelResponse.Success({id:resAction._id});
@@ -128,7 +138,6 @@ module.exports.createFriendChanelChat = async function(id_user, id_friend, langu
             Members: [Schema.Types.ObjectId(id_user),Schema.Types.ObjectId(id_friend)],
             GroupOwner: null,
             Team: null,
-            LastTime: 0,
         });  
         resAction = await ChanelChatModel.create(ChanelChat);
         return ModelResponse.Success({id:resAction._id});
@@ -145,7 +154,6 @@ module.exports.createTeamChanelChat = async function(id_team, languageMessage){
             Members: [],
             GroupOwner: null,
             Team: Schema.Types.ObjectId(id_team),
-            LastTime: 0,
         });  
         resAction = await ChanelChatModel.create(ChanelChat);
         return ModelResponse.Success({id:resAction._id});

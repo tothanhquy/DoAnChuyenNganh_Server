@@ -7,6 +7,7 @@ var logger = require('morgan');
 const bodyParser = require('body-parser');
 const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
+const MainSocket = require('./controllers/Socket/MainSocket');
 
 var mongoose  = require('./models/ConnectDatabase');
 
@@ -36,6 +37,10 @@ app.use(session({
 //socket.io
 var server = require("http").Server(app);
 var socketio = require("socket.io")(server);
+
+io.on("connection", (socket)=>{
+  MainSocket.MainSocket(io, socket);
+});
 
 app.use(function(req, res, next) {
   req.io = socketio;

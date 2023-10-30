@@ -5,6 +5,7 @@ module.exports.ChanelChatsItem = class {
     avatar;
     lastTime;
     lastMessage;
+    numberOfNewMessages;
     constructor(
         type,
         id,
@@ -12,6 +13,7 @@ module.exports.ChanelChatsItem = class {
         avatar,
         lastTime,
         lastMessage,
+        numberOfNewMessages=0,
     ) {
         this.type = type;
         this.id = id;
@@ -19,6 +21,7 @@ module.exports.ChanelChatsItem = class {
         this.avatar = avatar;
         this.lastTime = lastTime;
         this.lastMessage = lastMessage;
+        this.numberOfNewMessages = numberOfNewMessages;
     }
 
 }
@@ -68,5 +71,33 @@ module.exports.ChanelChatMember = class{
         this.id = id;
         this.name = name;
         this.avatar = avatar;
+    }
+}
+module.exports.UserSeen = class {
+    idUser;
+    idMessage;
+    constructor(
+        idUser,
+        idMessage,
+    ){
+        this.idUser=idUser;
+        this.idMessage=idMessage;
+    }
+}
+module.exports.LastNewMessageSocket = class {
+    content;
+    idChanelChat;
+    idReceiveUser;
+    numberOfNewMessages;
+    constructor(
+        content,
+        idChanelChat,
+        idReceiveUser,
+        numberOfNewMessages,
+    ){
+        this.content=content;
+        this.idChanelChat=idChanelChat;
+        this.idReceiveUser=idReceiveUser;
+        this.numberOfNewMessages=numberOfNewMessages;
     }
 }

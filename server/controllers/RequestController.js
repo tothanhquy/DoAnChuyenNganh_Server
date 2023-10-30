@@ -453,6 +453,8 @@ var RequestController = {
                             res.json(Controller.Fail(resAction.error));   
                             return;
                         }
+                        let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
+
                     }
                     editRequest.IsAgree = true;
                 }

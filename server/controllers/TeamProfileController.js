@@ -4,6 +4,7 @@ const ModelResponse = require('../models/ModelResponse');
 var TeamModel = require('../models/TeamModel');  
 var AccountModel = require('../models/AccountModel');  
 var ChanelChatModel = require('../models/ChanelChatModel');  
+var ChanelChatController = require('../controllers/ChanelChatController');  
 var Auth = require('../core/Auth');  
 const Mail = require('../core/Mail');
 var Controller = require('./Controller');
@@ -67,6 +68,8 @@ var TeamController = {
                     res.json(Controller.Fail(resAction.error));   
                     return;
                 }
+                let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
+
 
                 queryTeam = await queryTeam.populate(
                     {
@@ -489,6 +492,7 @@ var TeamController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
@@ -596,6 +600,7 @@ var TeamController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
