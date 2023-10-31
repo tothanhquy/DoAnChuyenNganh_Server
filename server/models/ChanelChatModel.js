@@ -50,6 +50,7 @@ var ChanelChatSchema = new mongoose.Schema({
         }],
         default:[]
     },
+    LastTimeAction:{type: Number, default: 0} ,
  })  
   
  //here we saving our collectionSchema with the name user in database  
@@ -121,10 +122,11 @@ module.exports.createGroupChanelChat = async function(newChanelChat,languageMess
             Image: newChanelChat.Image,
             Members: newChanelChat.Members,
             GroupOwner: newChanelChat.GroupOwner,
+            LastTimeAction:Date.now(),
             Team: null,
         });  
         resAction = await ChanelChatModel.create(ChanelChat);
-        return ModelResponse.Success({id:resAction._id});
+        return ModelResponse.Success({newChanelChat:resAction});
     } catch (err) {
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
@@ -137,6 +139,7 @@ module.exports.createFriendChanelChat = async function(id_user, id_friend, langu
             Image: "",
             Members: [Schema.Types.ObjectId(id_user),Schema.Types.ObjectId(id_friend)],
             GroupOwner: null,
+            LastTimeAction:Date.now(),
             Team: null,
         });  
         resAction = await ChanelChatModel.create(ChanelChat);
@@ -153,6 +156,7 @@ module.exports.createTeamChanelChat = async function(id_team, languageMessage){
             Image: "",
             Members: [],
             GroupOwner: null,
+            LastTimeAction:Date.now(),
             Team: Schema.Types.ObjectId(id_team),
         });  
         resAction = await ChanelChatModel.create(ChanelChat);

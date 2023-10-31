@@ -3,24 +3,27 @@ module.exports.ChanelChatsItem = class {
     id;
     name;
     avatar;
-    lastTime;
-    lastMessage;
+    lastTimeAction;
+    lastMessageTime;
+    lastMessageContent;
     numberOfNewMessages;
     constructor(
         type,
         id,
         name,
         avatar,
-        lastTime,
-        lastMessage,
+        lastTimeAction,
+        lastMessageTime,
+        lastMessageContent,
         numberOfNewMessages=0,
     ) {
         this.type = type;
         this.id = id;
         this.name = name;
         this.avatar = avatar;
-        this.lastTime = lastTime;
-        this.lastMessage = lastMessage;
+        this.lastTimeAction = lastTimeAction;
+        this.lastMessageTime = lastMessageTime;
+        this.lastMessageContent = lastMessageContent;
         this.numberOfNewMessages = numberOfNewMessages;
     }
 
@@ -30,25 +33,31 @@ module.exports.ChanelChatDetails = class {
     id;
     name;
     avatar;
-    lastTime;
-    lastMessage;
     isGroupOwner;
+    teamId;
+    friendId;
+    members=[];//ChanelChatMember
+    lastTimeMemberSeen=[];//LastTimeMemberSeen
     constructor(
-        type,
-        id,
-        name,
-        avatar,
-        lastTime,
-        lastMessage,
+        type='',
+        id='',
+        name='',
+        avatar='',
         isGroupOwner=false,
+        teamId=null,
+        friendId=null,
+        members=[],
+        lastTimeMemberSeen=[]
     ) {
         this.type = type;
         this.id = id;
         this.name = name;
         this.avatar = avatar;
-        this.lastTime = lastTime;
-        this.lastMessage = lastMessage;
         this.isGroupOwner = isGroupOwner;
+        this.teamId=teamId;
+        this.friendId=friendId;
+        this.members=members;
+        this.lastTimeMemberSeen=lastTimeMemberSeen;
     }
 
 }
@@ -71,6 +80,17 @@ module.exports.ChanelChatMember = class{
         this.id = id;
         this.name = name;
         this.avatar = avatar;
+    }
+}
+module.exports.LastTimeMemberSeen = class{
+    userId;
+    messageId;
+    constructor(
+        userId,
+        messageId,
+    ){
+        this.userId = userId;
+        this.messageId = messageId;
     }
 }
 module.exports.UserSeen = class {
