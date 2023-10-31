@@ -76,7 +76,11 @@ app.use('/Post', postRouter);
 var friendRouter = require('./routes/FriendRouter');
 app.use('/Friend', friendRouter);
 
+var chanelChatRouter = require('./routes/ChanelChatRouter');
+app.use('/ChanelChat', chanelChatRouter);
 
+var messageRouter = require('./routes/MessageRouter');
+app.use('/Message', messageRouter);
 
 
 // catch 404 and forward to error handler

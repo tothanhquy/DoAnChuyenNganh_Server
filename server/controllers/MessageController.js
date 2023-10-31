@@ -267,25 +267,25 @@ var MessageController = {
     },
     //not http. is tool for other controller 
     //return list of id chanel chats. error is []
-    GetIdChanelChatsOfUser: async (idUser) => {
-        try {
-            let idAccount = idUser;
+    // GetIdChanelChatsOfUser: async (idUser) => {
+    //     try {
+    //         let idAccount = idUser;
 
-            let resAction = await ChanelChatModel.getChanelChatsOfUser(idAccount, req.lang);
-            if (resAction.status == ModelResponse.ResStatus.Fail) {
-                return [];
-            }
-            let chanelChats = resAction.data.filter(e=> e.Type!==ChanelChatModel.ChanelChatType.Team || e.Team.Members.indexOf(idAccount)!=-1) || [];
-            let resIdChanelChats = [];
-            chanelChats.forEach((e)=>{
-                resIdChanelChats.push(e._id);
-            });
-            return resIdChanelChats;
-        }  
-        catch (error) {  
-            return [];
-        }  
-    },
+    //         let resAction = await ChanelChatModel.getChanelChatsOfUser(idAccount, req.lang);
+    //         if (resAction.status == ModelResponse.ResStatus.Fail) {
+    //             return [];
+    //         }
+    //         let chanelChats = resAction.data.filter(e=> e.Type!==ChanelChatModel.ChanelChatType.Team || e.Team.Members.indexOf(idAccount)!=-1) || [];
+    //         let resIdChanelChats = [];
+    //         chanelChats.forEach((e)=>{
+    //             resIdChanelChats.push(e._id);
+    //         });
+    //         return resIdChanelChats;
+    //     }  
+    //     catch (error) {  
+    //         return [];
+    //     }  
+    // },
 }  
 
 module.exports = MessageController;
