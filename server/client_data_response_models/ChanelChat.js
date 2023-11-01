@@ -36,6 +36,7 @@ module.exports.ChanelChatDetails = class {
     isGroupOwner;
     teamId;
     friendId;
+    accountId;
     members=[];//ChanelChatMember
     lastTimeMemberSeen=[];//LastTimeMemberSeen
     constructor(
@@ -46,6 +47,7 @@ module.exports.ChanelChatDetails = class {
         isGroupOwner=false,
         teamId=null,
         friendId=null,
+        accountId=null,
         members=[],
         lastTimeMemberSeen=[]
     ) {
@@ -56,6 +58,7 @@ module.exports.ChanelChatDetails = class {
         this.isGroupOwner = isGroupOwner;
         this.teamId=teamId;
         this.friendId=friendId;
+        this.accountId=accountId;
         this.members=members;
         this.lastTimeMemberSeen=lastTimeMemberSeen;
     }
@@ -64,6 +67,8 @@ module.exports.ChanelChatDetails = class {
 module.exports.ChanelChatMemberList = class {
     members=[];
     isGroupOwner=false;
+    accountId;
+    type;
     constructor(
     ){
     }

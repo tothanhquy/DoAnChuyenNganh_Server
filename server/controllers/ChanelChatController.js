@@ -159,6 +159,7 @@ var ChanelChatController = {
             resChanelChat.members = members;
             resChanelChat.lastTimeMemberSeen = lastTimeMemberSeen;
             resChanelChat.id = queryChanelChat._id;
+            resChanelChat.accountId = idAccount;
 
             if(queryChanelChat.Type==ChanelChatModel.ChanelChatType.Friend){
                 let friend = queryChanelChat.Members[0]._id.toString()==idAccount?queryChanelChat.Members[1]:queryChanelChat.Members[0];
@@ -221,6 +222,13 @@ var ChanelChatController = {
                 return;
             }
 
+            //check type chanel chat
+            if(editChanelChat.Type!==ChanelChatModel.ChanelChatType.Group){
+                //only group 
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return;
+            }
+
             if(editChanelChat.Members.indexOf(idAccount)==-1){
                 //not a member of group
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
@@ -262,6 +270,13 @@ var ChanelChatController = {
             let editChanelChat = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            //check type chanel chat
+            if(editChanelChat.Type!==ChanelChatModel.ChanelChatType.Group){
+                //only group 
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
             }
 
@@ -338,6 +353,13 @@ var ChanelChatController = {
                 return;
             }
 
+            //check type chanel chat
+            if(editChanelChat.Type!==ChanelChatModel.ChanelChatType.Group){
+                //only group 
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return;
+            }
+
             if (editChanelChat.GroupOwner.toString() != idAccount) {
                 //not group owner
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
@@ -404,7 +426,8 @@ var ChanelChatController = {
                 });
 
             let resObject = new ChanelChatResponse.ChanelChatMemberList();
-            
+            resObject.accountId = idAccount;
+            resObject.type = queryChanelChat.Type;
             //get members
             let members = [];
 
@@ -537,6 +560,14 @@ var ChanelChatController = {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
+
+            //check type chanel chat
+            if(editChanelChat.Type!==ChanelChatModel.ChanelChatType.Group){
+                //only group 
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return;
+            }
+            
             if(editChanelChat.Members.indexOf(idAccount)==-1){
                 //not a member of group
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
