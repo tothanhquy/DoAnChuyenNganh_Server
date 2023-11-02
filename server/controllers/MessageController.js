@@ -45,8 +45,8 @@ var MessageController = {
     GetMessagesOfChanelChat: async (req,res) => {
         try {
             let idAccount = req.user.id;
-            let idChanelChat = req.body.id_chanel_chat;
-            let lastTime = req.body.last_time;
+            let idChanelChat = req.query.id_chanel_chat;
+            let lastTime = req.query.last_time;
 
             if (idChanelChat == undefined || idChanelChat == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
@@ -108,9 +108,9 @@ var MessageController = {
     GetMessagesOfChanelChatBetweenTime: async (req,res) => {
         try {
             let idAccount = req.user.id;
-            let idChanelChat = req.body.id_chanel_chat;
-            let lastTime = req.body.last_time;
-            let startTime = req.body.start_time;
+            let idChanelChat = req.query.id_chanel_chat;
+            let lastTime = req.query.last_time;
+            let startTime = req.query.start_time;
 
             if (idChanelChat == undefined || idChanelChat == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));

@@ -91,29 +91,29 @@ var ChanelChatController = {
                         //unfriend
                         resChanelChats.push(
                             new ChanelChatResponse.ChanelChatsItem(
-                                'friend', e._id, "-Undefined Person-","",e.LastMessageAction,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
+                                'friend', e._id, "-Undefined Person-","",e.lastTimeAction,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
                             ));
                     }else{
                         resChanelChats.push(
                             new ChanelChatResponse.ChanelChatsItem(
-                                'friend', e._id, friend.Name ,friend.Avatar,e.LastMessageAction,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
+                                'friend', e._id, friend.Name ,friend.Avatar,e.lastTimeAction,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
                             ));
                     }
                     
                 }else if(e.Type==ChanelChatModel.ChanelChatType.Group){
                     resChanelChats.push(
                         new ChanelChatResponse.ChanelChatsItem(
-                            'group', e._id, e.Name, e.Image,e.LastMessageAction, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
+                            'group', e._id, e.Name, e.Image,e.lastTimeAction, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
                         ));
                 }else {
                     //team
                     resChanelChats.push(
                         new ChanelChatResponse.ChanelChatsItem(
-                            'team', e._id, e.Team.Name, e.Team.Avatar,e.LastMessageAction, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
+                            'team', e._id, e.Team.Name, e.Team.Avatar,e.lastTimeAction, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
                         ));
                 }
             });
-            resChanelChats.sort((a,b)=>b.lastTime-a.lastTime);
+            resChanelChats.sort((a,b)=>b.lastTimeAction-a.lastTimeAction);
             res.json(Controller.Success({ chanelChats: resChanelChats }));  
         }  
         catch (error) {  
@@ -398,7 +398,7 @@ var ChanelChatController = {
         try {
             let idAccount = req.user.id;
 
-            let idChanelChat = req.body.id_chanel_chat;
+            let idChanelChat = req.query.id_chanel_chat;
 
             let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
             let queryChanelChat = resAction.data;
