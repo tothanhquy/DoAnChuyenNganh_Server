@@ -2,6 +2,7 @@ module.exports.SEND = {
     ChanelChatUserSeen:"chanel-chat-user-seen",
     ChanelChatNotifiLastMessage:"chanel-chat-notifi-last-message",
     ChanelChatNewMessages:"chanel-chat-new-messages",
+    ChanelChatYouHasNewChanel:"chanel-chat-you-has-new-chanel",
     
 }
 module.exports.RECEIVE = {

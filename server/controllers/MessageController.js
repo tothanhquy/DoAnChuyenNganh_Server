@@ -241,7 +241,7 @@ var MessageController = {
             }
 
             //update chanel chat
-            let resupdateLastMessageOfChanelChat = ChanelChatController.updateLastMessageOfChanelChat(idChanelChat, queryInsertMessages[newMessageCount-1]._id, queryInsertMessages[newMessageCount-1].Content, idAccount, newMessageCount);
+            let resupdateLastMessageOfChanelChat = ChanelChatController.updateLastMessageOfChanelChat(idChanelChat, queryInsertMessages[newMessageCount-1]._id, queryInsertMessages[newMessageCount-1].Content,queryInsertMessages[newMessageCount-1].Time, idAccount, newMessageCount);
            
             //send to socket
             let socketResponseMessages=[];

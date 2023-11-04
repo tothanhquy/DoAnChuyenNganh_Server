@@ -53,7 +53,7 @@ module.exports.OutRealChatChanelChatRoom = async (io, socket, beforeRooms, data)
     let idChanelChats = await getIdChanelChatsBaseJWT(data.jwt);
     //check exit chanel chat
     if(idChanelChats.indexOf(data.id_chanel_chat)!=-1){
-        let roomName = ROOM_NAME_PRIFIX.RealChatChanelChat+data.id_chanel_chat;
+        let roomName = ROOM_NAME_PRIFIX.RealChatChanelChat+data.data.id_chanel_chat;
         if(io.sockets.adapter.sids[socket.id][roomName]) {
             //join
             socket.leave(roomName);

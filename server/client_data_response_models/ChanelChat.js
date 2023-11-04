@@ -111,18 +111,35 @@ module.exports.UserSeen = class {
 }
 module.exports.LastNewMessageSocket = class {
     content;
+    time;
     idChanelChat;
     idReceiveUser;
     numberOfNewMessages;
     constructor(
         content,
+        time,
         idChanelChat,
         idReceiveUser,
         numberOfNewMessages,
     ){
         this.content=content;
+        this.time=time;
         this.idChanelChat=idChanelChat;
         this.idReceiveUser=idReceiveUser;
         this.numberOfNewMessages=numberOfNewMessages;
+    }
+}
+module.exports.UserSeenSocket = class {
+    idMessage;
+    idUserSeen;
+    idChanelChat;
+    constructor(
+        idChanelChat,
+        idUserSeen,
+        idMessage,
+    ){
+        this.idChanelChat=idChanelChat;
+        this.idUserSeen=idUserSeen;
+        this.idMessage=idMessage;
     }
 }

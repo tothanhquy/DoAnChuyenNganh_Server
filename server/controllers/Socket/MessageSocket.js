@@ -7,5 +7,5 @@ module.exports.sendRealTimeMessages = (io, idChanelChat, messages)=>{
         io,
         Room.ROOM_NAME_PRIFIX.RealChatChanelChat+idChanelChat,
         SocketEventNames.SEND.ChanelChatNewMessages,
-        {messages});
+        {messages:messages});
 }

@@ -693,7 +693,7 @@ var ChanelChatController = {
     },
     //not http. is tool for other controller 
     //return true or false
-    updateLastMessageOfChanelChat: async (idChanelChat, idLastMassage, contentLastMessage, idCreator, numberOfNewMessages) => {
+    updateLastMessageOfChanelChat: async (idChanelChat, idLastMassage, contentLastMessage, timeLastMessage, idCreator, numberOfNewMessages) => {
         try {
             if (idChanelChat == undefined || idChanelChat == "") {
                 return false; 
@@ -712,6 +712,7 @@ var ChanelChatController = {
             queryChanelChat.LastMessage = idLastMassage;
             
             let notifiLastNewMessagesSocket=[];
+            let notifiHasNewChanelChat=[];
 
             queryChanelChat.Members.forEach((e)=>{
                 let ind = queryChanelChat.LastTimeMemberSeen.findIndex((l)=>l.User==e.toString());
@@ -723,6 +724,7 @@ var ChanelChatController = {
                         Number: e==idCreator?0:numberOfNewMessages,
                     });
                     ind = queryChanelChat.LastTimeMemberSeen.length-1;
+                    notifiHasNewChanelChat.push(e.toString());
                 }else{
                     if(e==idCreator){
                         queryChanelChat.LastTimeMemberSeen[ind].Number = 0;
@@ -733,6 +735,7 @@ var ChanelChatController = {
                 if(queryChanelChat.LastTimeMemberSeen[ind].Number!=0){
                     notifiLastNewMessagesSocket.push(new ChanelChatResponse.LastNewMessageSocket(
                         contentLastMessage,
+                        timeLastMessage,
                         idChanelChat,
                         e.toString(),
                         queryChanelChat.LastTimeMemberSeen[ind].Number
@@ -749,6 +752,7 @@ var ChanelChatController = {
             } else {
                 //send socket
                 ChanelChatSocket.notifiLastMessageForMembers(req.io, notifiLastNewMessagesSocket);
+                ChanelChatSocket.notifiHasNewChanelForNewMembers(req.io, notifiHasNewChanelChat);
 
 
                 return true;
@@ -782,28 +786,34 @@ var ChanelChatController = {
                 return;
             }
 
-            let ind = editChanelChat.LastTimeMemberSeen.findIndex((l)=>l.User==idChanelChat);
+            let ind = editChanelChat.LastTimeMemberSeen.findIndex((l)=>l.User==idAccount);
             if(ind==-1){
                 //do not thing
-            }else{
-                editChanelChat.LastTimeMemberSeen[ind].Number = 0;
-                editChanelChat.LastTimeMemberSeen[ind].Message = queryChanelChat.LastMessage;
-            }
-                     
-            //update
-            let updateFields = {$set:{LastTimeMemberSeen:editChanelChat.LastTimeMemberSeen}};
-            resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
-            if (resAction.status == ModelResponse.ResStatus.Fail) {
-                res.json(Controller.Fail(resAction.error));   
-                return;
-            } else {
-                //send socket
-                ChanelChatSocket.notifiUserSeen(req.io, idChanelChat, idAccount, queryChanelChat.LastMessage.toString());
-
                 res.json(Controller.Success({ isComplete: true }));  
                 return;
+            }else{
+                if(editChanelChat.LastTimeMemberSeen[ind].Message.toString()!=editChanelChat.LastMessage.toString()){
+                    editChanelChat.LastTimeMemberSeen[ind].Number = 0;
+                    editChanelChat.LastTimeMemberSeen[ind].Message = editChanelChat.LastMessage;
+                
+                    //update
+                    let updateFields = {$set:{LastTimeMemberSeen:editChanelChat.LastTimeMemberSeen}};
+                    resAction = await ChanelChatModel.updateChanelChat(editChanelChat._id, updateFields,req.lang);
+                    if (resAction.status == ModelResponse.ResStatus.Fail) {
+                        res.json(Controller.Fail(resAction.error));   
+                        return;
+                    } else {
+                        //send socket
+                        ChanelChatSocket.notifiUserSeen(req.io, idChanelChat, idAccount, editChanelChat.LastMessage.toString());
+    
+                        res.json(Controller.Success({ isComplete: true }));  
+                        return;
+                    }
+                }else{
+                    res.json(Controller.Success({ isComplete: true }));  
+                    return;
+                }
             }
-          
         }  
         catch (error) {  
             console.log(error);

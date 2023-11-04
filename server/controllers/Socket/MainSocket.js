@@ -7,6 +7,7 @@ module.exports.MainSocket = (io, socket)=>{
     //rooms
     socket.on(SocketEventNames.RECEIVE.JoinPersonalRoom, async (data)=>{
         Room.OutRooms(io, socket, roomsOfThisSocket, data);
+        roomsOfThisSocket = [];
         roomsOfThisSocket = await Room.JoinPersonalRoom(io, socket, roomsOfThisSocket, data);
     });
     socket.on(SocketEventNames.RECEIVE.JoinChanelChatRooms, async (data)=>{
