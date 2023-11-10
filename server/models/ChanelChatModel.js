@@ -5,13 +5,7 @@ var mongoose = require('./ConnectDatabase');
 const ModelResponse = require('./ModelResponse');
 const ModelValid = require('./ModelValid');
 
-const ChanelChatType = {
-    Friend: "friend",
-    Group: "group",
-    Team: "team",
-}
 
-module.exports.ChanelChatType = ChanelChatType;
 
 const MAXIMUM_NAME_LENGTH = 50;
 
@@ -19,7 +13,7 @@ const MAXIMUM_NAME_LENGTH = 50;
 var ChanelChatSchema = new mongoose.Schema({  
     Name: {
         type: String,
-        required:true
+        default:""
     },
     Image: {
         type: String,
@@ -34,12 +28,12 @@ var ChanelChatSchema = new mongoose.Schema({
         default:[]
     },
     GroupOwner: {
-        type: { type: mongoose.Schema.Types.ObjectId, ref: 'Accounts' },
-        required:false
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Accounts' ,
     },
     Team: {
-        type: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams' },
-        required:false
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Teams' ,
     },
     LastMessage:{type: mongoose.Schema.Types.ObjectId, ref: 'Messages',default:null},
     LastTimeMemberSeen: {
@@ -57,14 +51,23 @@ var ChanelChatSchema = new mongoose.Schema({
  //AccountModel will contain the instance of the user for manipulating the data.  
 var ChanelChatModel = module.exports = mongoose.model('ChanelChats',ChanelChatSchema)  
 
+const ChanelChatType = {
+    Friend: "friend",
+    Group: "group",
+    Team: "team",
+}
+
+module.exports.ChanelChatType = ChanelChatType;
+
 module.exports.getChanelChatsOfUser = async (id_user, languageMessage)=>{
     try {
         let resAction = await ChanelChatModel.find({
-                "Members":{$elemMatch:Schema.Types.ObjectId(id_user)}
+                "Members":new mongoose.Types.ObjectId(id_user)
         }).populate("Team").populate("Members").populate('LastMessage');
         return ModelResponse.Success(resAction);
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -78,6 +81,7 @@ module.exports.getDataByIdPopulateMembers = async (id,languageMessage)=>{
         }
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -91,6 +95,7 @@ module.exports.getDataById = async (id,languageMessage)=>{
         }
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -100,8 +105,8 @@ module.exports.checkAndGetFriendChanelChatOfUser = async (id_user, id_friend, la
             { 
                 "Type": ChanelChatType.Friend, 
                 $and:[
-                    {"Members":{$elemMatch:Schema.Types.ObjectId(id_user)}},
-                    {"Members":{$elemMatch:Schema.Types.ObjectId(id_friend)}}
+                    {"Members":new mongoose.Types.ObjectId(id_user)},
+                    {"Members":new mongoose.Types.ObjectId(id_friend)}
                 ]
             });
         if (resAction == null) {
@@ -111,6 +116,7 @@ module.exports.checkAndGetFriendChanelChatOfUser = async (id_user, id_friend, la
         }
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -128,6 +134,7 @@ module.exports.createGroupChanelChat = async function(newChanelChat,languageMess
         resAction = await ChanelChatModel.create(ChanelChat);
         return ModelResponse.Success({newChanelChat:resAction});
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }
@@ -137,7 +144,7 @@ module.exports.createFriendChanelChat = async function(id_user, id_friend, langu
             Name: "",
             Type: ChanelChatType.Friend,
             Image: "",
-            Members: [Schema.Types.ObjectId(id_user),Schema.Types.ObjectId(id_friend)],
+            Members: [new mongoose.Types.ObjectId(id_user),new mongoose.Types.ObjectId(id_friend)],
             GroupOwner: null,
             LastTimeAction:Date.now(),
             Team: null,
@@ -145,6 +152,7 @@ module.exports.createFriendChanelChat = async function(id_user, id_friend, langu
         resAction = await ChanelChatModel.create(ChanelChat);
         return ModelResponse.Success({id:resAction._id});
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }
@@ -157,11 +165,12 @@ module.exports.createTeamChanelChat = async function(id_team, languageMessage){
             Members: [],
             GroupOwner: null,
             LastTimeAction:Date.now(),
-            Team: Schema.Types.ObjectId(id_team),
+            Team: new mongoose.Types.ObjectId(id_team),
         });  
         resAction = await ChanelChatModel.create(ChanelChat);
         return ModelResponse.Success({id:resAction._id});
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }

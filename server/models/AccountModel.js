@@ -93,6 +93,7 @@ module.exports.getDataById = async (id,languageMessage)=>{
         }
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }

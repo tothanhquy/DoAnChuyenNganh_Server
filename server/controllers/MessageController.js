@@ -60,6 +60,7 @@ var MessageController = {
             let queryChanelChat = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                console.log(2)
                 return;
             }
             //check is member
@@ -73,10 +74,11 @@ var MessageController = {
             let queryMessages = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                console.log(1)
                 return;
             }
             
-            let resMessages = MessageResponse.Messages;
+            let resMessages = new MessageResponse.Messages();
             if(queryMessages.length<LIMIT_MESSAGES_PER_RESQUEST+1){
                 resMessages.isFinish = true;
             }else{
@@ -97,10 +99,13 @@ var MessageController = {
                     message.Reply!=null?message.Reply._id:null,
                 ));
             });
+            console.log(queryMessages)
+            console.log(resMessages)
 
             res.json(Controller.Success({ messages: resMessages }));  
         }  
         catch (error) {  
+            console.log(error)
             res.json(Controller.Fail(Message(req.lang, "system_error")));  
         }  
     },
@@ -173,12 +178,13 @@ var MessageController = {
             let idChanelChat = req.body.id_chanel_chat;
             let idReply = req.body.id_reply;
             let content = req.body.content;
+            console.log(req.body)
 
             if (idChanelChat == undefined || idChanelChat == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            if (idReply == undefined || idReply == "") {
+            if (idReply == undefined || idReply == "" ||idReply == "null") {
                 idReply = null;
             }
 
@@ -188,6 +194,7 @@ var MessageController = {
                 let contentValid = MessageModel.isValidContent(e, req.lang);
                 if (!contentValid.isValid) {
                     res.json(Controller.Fail(Message(req.lang, "system_error")));  
+                    console.log(1)
                     return;
                 }
             });
@@ -211,6 +218,7 @@ var MessageController = {
                 let queryReply = resAction.data;
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));
+                    console.log(2)
                     return;
                 }
                 if(queryReply.ChanelChat.toString()!=idChanelChat){
@@ -234,9 +242,10 @@ var MessageController = {
 
             
             resAction = await MessageModel.createMessages(newInsertMessages,req.lang);
-            let queryInsertMessages = resAction.data;
+            let queryInsertMessages = resAction.data.newMessages;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                console.log(3)
                 return;
             }
 
@@ -262,6 +271,7 @@ var MessageController = {
             res.json(Controller.Success({ isCompleted: true }));  
         }  
         catch (error) {  
+            console.log(error)
             res.json(Controller.Fail(Message(req.lang, "system_error")));  
         }  
     },

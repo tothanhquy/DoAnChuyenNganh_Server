@@ -5,6 +5,8 @@ var ChanelChatSocket = require('../controllers/Socket/ChanelChatSocket');
 var AccountModel = require('../models/AccountModel');
 var Controller = require('./Controller');
 const ChanelChatResponse = require("../client_data_response_models/ChanelChat");
+const Path = require('path');
+const fs = require('fs');
 
 //containt the function with business logics  
 var ChanelChatController = { 
@@ -44,10 +46,10 @@ var ChanelChatController = {
             } else {
                 let newChanelChatId = new ChanelChatResponse.ChanelChatsItem(
                     'group',
-                    resAction.data._id,
-                    resAction.data.Name,
-                    resAction.data.Image,
-                    resAction.data.LastTimeAction,
+                    resAction.data.newChanelChat._id,
+                    resAction.data.newChanelChat.Name,
+                    resAction.data.newChanelChat.Image,
+                    resAction.data.newChanelChat.LastTimeAction,
                     0,
                     null,
                     0
@@ -87,29 +89,29 @@ var ChanelChatController = {
                 let numberOfNewMessages = indexInUsersSeen==-1?0:e.LastTimeMemberSeen[indexInUsersSeen].Number;
                 if(e.Type==ChanelChatModel.ChanelChatType.Friend){
                     let friend = e.Members[0]._id.toString()==idAccount?e.Members[1]:e.Members[0];
-                    if(myfriends.indexOf(friend._id)==-1){
+                    if(myfriends.indexOf(friend._id.toString())==-1){
                         //unfriend
                         resChanelChats.push(
                             new ChanelChatResponse.ChanelChatsItem(
-                                'friend', e._id, "-Undefined Person-","",e.lastTimeAction,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
+                                'friend', e._id, "-Undefined Person-","",e.LastTimeAction,e.LastMessage!=null?e.LastMessage.Time:0,e.LastMessage!=null?e.LastMessage.Content:"",numberOfNewMessages
                             ));
                     }else{
                         resChanelChats.push(
                             new ChanelChatResponse.ChanelChatsItem(
-                                'friend', e._id, friend.Name ,friend.Avatar,e.lastTimeAction,e.LastMessage.Time,e.LastMessage.Content,numberOfNewMessages
+                                'friend', e._id, friend.Name ,friend.Avatar,e.LastTimeAction,e.LastMessage!=null?e.LastMessage.Time:0,e.LastMessage!=null?e.LastMessage.Content:"",numberOfNewMessages
                             ));
                     }
                     
                 }else if(e.Type==ChanelChatModel.ChanelChatType.Group){
                     resChanelChats.push(
                         new ChanelChatResponse.ChanelChatsItem(
-                            'group', e._id, e.Name, e.Image,e.lastTimeAction, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
+                            'group', e._id, e.Name, e.Image,e.LastTimeAction, e.LastMessage!=null?e.LastMessage.Time:0,e.LastMessage!=null?e.LastMessage.Content:"",numberOfNewMessages
                         ));
                 }else {
                     //team
                     resChanelChats.push(
                         new ChanelChatResponse.ChanelChatsItem(
-                            'team', e._id, e.Team.Name, e.Team.Avatar,e.lastTimeAction, e.LastMessage.Time, e.LastMessage.Content,numberOfNewMessages
+                            'team', e._id, e.Team.Name, e.Team.Avatar,e.LastTimeAction, e.LastMessage!=null?e.LastMessage.Time:0,e.LastMessage!=null?e.LastMessage.Content:"",numberOfNewMessages
                         ));
                 }
             });
@@ -117,6 +119,7 @@ var ChanelChatController = {
             res.json(Controller.Success({ chanelChats: resChanelChats }));  
         }  
         catch (error) {  
+            console.log(error)
             res.json(Controller.Fail(Message(req.lang, "system_error")));  
         }  
     },
@@ -164,29 +167,30 @@ var ChanelChatController = {
             if(queryChanelChat.Type==ChanelChatModel.ChanelChatType.Friend){
                 let friend = queryChanelChat.Members[0]._id.toString()==idAccount?queryChanelChat.Members[1]:queryChanelChat.Members[0];
                 resChanelChat.type = "friend";
-                if(myfriends.indexOf(friend._id)==-1){
+                
+                if(myfriends.indexOf(friend._id.toString())==-1){
                     //unfriend
                     resChanelChat.name = "-Undefined Person-";
-                    resChanelChat.Avatar = "";
+                    resChanelChat.avatar = "";
                     resChanelChat.friendId = null;
                 }else{
                     resChanelChat.name = friend.Name;
-                    resChanelChat.Avatar = friend.Avatar;
+                    resChanelChat.avatar = friend.Avatar;
                     resChanelChat.friendId = friend._id;
                 }
                 
             }else if(queryChanelChat.Type==ChanelChatModel.ChanelChatType.Group){
                 resChanelChat.type = "group";
                 resChanelChat.name = queryChanelChat.Name;
-                resChanelChat.Avatar = queryChanelChat.Image;
+                resChanelChat.avatar = queryChanelChat.Image;
                 resChanelChat.isGroupOwner=queryChanelChat.GroupOwner.toString()!=idAccount?false:true;
     
             }else {
                 //team
                 resChanelChat.type = "team";
-                resChanelChat.name = queryChanelChat.Team._id;
+                resChanelChat.teamId = queryChanelChat.Team._id;
                 resChanelChat.name = queryChanelChat.Team.Name;
-                resChanelChat.Avatar = queryChanelChat.Team.Avatar;
+                resChanelChat.avatar = queryChanelChat.Team.Avatar;
     
             }
             res.json(Controller.Success({resChanelChat}));  
@@ -408,7 +412,7 @@ var ChanelChatController = {
             }
             //check type chanel chat
             if(queryChanelChat.Type!==ChanelChatModel.ChanelChatType.Group){
-                //only group 
+                //only group
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
             }
@@ -821,5 +825,5 @@ var ChanelChatController = {
         }  
     },
 }  
-
+const isMemberOfChanelChat = ChanelChatController.isMemberOfChanelChat
 module.exports = ChanelChatController;

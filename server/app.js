@@ -38,8 +38,8 @@ app.use(session({
 var server = require("http").Server(app);
 var socketio = require("socket.io")(server);
 
-io.on("connection", (socket)=>{
-  MainSocket.MainSocket(io, socket);
+socketio.on("connection", (socket)=>{
+  MainSocket.MainSocket(socketio, socket);
 });
 
 app.use(function(req, res, next) {

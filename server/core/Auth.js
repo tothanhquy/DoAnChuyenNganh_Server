@@ -120,7 +120,7 @@ module.exports.CheckAndGetAuthenUser = async (req) => {
         if (!token) {
             return false;
         } else {
-            return await checkAndGetAuthJWT(token);
+            return await checkAndGetAuthJWT(token,req);
             // let verifyData = await JWTVerify(token, JWT_SECRET);
             // if (verifyData === false) {
             //     return false;
@@ -160,7 +160,7 @@ module.exports.CheckAndGetAuthenUser = async (req) => {
         return false;
     }
 };
-const checkAndGetAuthJWT = async (jwt)=>{
+const checkAndGetAuthJWT = async (jwt,req)=>{
     let verifyData = await JWTVerify(jwt, JWT_SECRET);
     if (verifyData === false) {
         return false;

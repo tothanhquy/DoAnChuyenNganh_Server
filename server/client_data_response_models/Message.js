@@ -30,9 +30,10 @@ module.exports.Message = class{
         this.replyId=replyId;
     }
 }
-module.exports.Messages = {
-    messages:[],
-    isFinish:false,
+module.exports.Messages = class{
+    messages=[];
+    isFinish=false;
+    constructor(){}
 }
 module.exports.MessageSocket = class{
     id;

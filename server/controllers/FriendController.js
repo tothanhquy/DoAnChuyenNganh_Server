@@ -308,6 +308,7 @@ var FriendController = {
                 ) && !(
                     method === "receive" && (response === "agree" || response === "disagree"))
                 ) {
+                    console.log(1)
                 res.json(Controller.Fail(Message(req.lang, "system_error")));  
                 return;
             }
@@ -343,6 +344,7 @@ var FriendController = {
                     let resAction = await AccountModel.getDataById(queryRequest.SendUser._id,req.lang);
                     if (resAction.status == ModelResponse.ResStatus.Fail) {
                         res.json(Controller.Fail(Message(req.lang,"system_error")));
+                        console.log(2)
                         return;
                     }
                     let sendUser = resAction.data;
@@ -350,6 +352,7 @@ var FriendController = {
                     resAction = await AccountModel.getDataById(idAccount,req.lang);
                     if (resAction.status == ModelResponse.ResStatus.Fail) {
                         res.json(Controller.Fail(Message(req.lang,"system_error")));
+                        console.log(3)
                         return;
                     }
                     let receiveUser = resAction.data;
@@ -359,14 +362,16 @@ var FriendController = {
                     resAction = await ChanelChatModel.checkAndGetFriendChanelChatOfUser(idAccount,receiveUser._id,req.lang);
                     if (resAction.status == ModelResponse.ResStatus.Fail) {
                         res.json(Controller.Fail(resAction.error));   
+                        console.log(4)
                         return;
                     }
                     let chanelChatId = resAction.data;
                     if(chanelChatId==null){
                         //create chanel chat
-                        resAction = await ChanelChatModel.createFriendChanelChat(idAccount,receiveUser._id,req.lang);
+                        resAction = await ChanelChatModel.createFriendChanelChat(idAccount,sendUser._id,req.lang);
                         if (resAction.status == ModelResponse.ResStatus.Fail) {
                             res.json(Controller.Fail(resAction.error));   
+                            console.log(5)
                             return;
                         }
                         chanelChatId = resAction.data.id;
@@ -383,6 +388,7 @@ var FriendController = {
                         resAction = await AccountModel.updateAccount(receiveUser._id, receiveUser,req.lang);
                         if (resAction.status == ModelResponse.ResStatus.Fail) {
                             res.json(Controller.Fail(resAction.error));   
+                            console.log(6)
                             return;
                         }
                         
@@ -399,6 +405,7 @@ var FriendController = {
                         resAction = await AccountModel.updateAccount(sendUser._id, sendUser,req.lang);
                         if (resAction.status == ModelResponse.ResStatus.Fail) {
                             res.json(Controller.Fail(resAction.error));   
+                            console.log(7)
                             return;
                         }
                     }

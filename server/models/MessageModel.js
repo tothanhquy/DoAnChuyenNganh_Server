@@ -12,11 +12,13 @@ var MessageSchema = new mongoose.Schema({
         required:true
     },
     ChanelChat: {
-        type: { type: mongoose.Schema.Types.ObjectId, ref: 'ChanelChats' },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ChanelChats' ,
         required:true
     },
     Owner: {
-        type: { type: mongoose.Schema.Types.ObjectId, ref: 'Accounts' },
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Accounts',
         required:true
     },
     Time: {
@@ -24,8 +26,8 @@ var MessageSchema = new mongoose.Schema({
         default:0
     },
     Reply: {
-        type: { type: mongoose.Schema.Types.ObjectId, ref: 'Messages' },
-        required:false
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Messages' ,
     },
  })  
 
@@ -35,19 +37,21 @@ var MessageModel = module.exports = mongoose.model('Messages',MessageSchema,'Mes
 
 module.exports.getMessagesHistory = async (id_chanel_chat, last_time, limit, languageMessage)=>{
     try {
-        let resAction = await MessageModel.find({"ChanelChat":Schema.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time}}).sort({Time: -1}).limit(limit).populate("Owner").populate("Reply");
+        let resAction = await MessageModel.find({"ChanelChat":new mongoose.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time}}).sort({Time: -1}).limit(limit).populate("Owner").populate("Reply");
         return ModelResponse.Success(resAction);
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
 module.exports.getMessagesBetweenTime = async (id_chanel_chat, first_time, last_time, languageMessage)=>{
     try {
-        let resAction = await MessageModel.find({"ChanelChat":Schema.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time, $gte: first_time}}).sort({Time: -1}).populate("Owner").populate("Reply");
+        let resAction = await MessageModel.find({"ChanelChat":new mongoose.Types.ObjectId(id_chanel_chat), Time:{$lte: last_time, $gte: first_time}}).sort({Time: -1}).populate("Owner").populate("Reply");
         return ModelResponse.Success(resAction);
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -61,6 +65,7 @@ module.exports.getDataById = async (id,languageMessage)=>{
         }
             
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -69,6 +74,7 @@ module.exports.createMessages = async function(newMessages,languageMessage){
         resAction = await MessageModel.insertMany(newMessages);
         return ModelResponse.Success({newMessages:resAction});
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }
