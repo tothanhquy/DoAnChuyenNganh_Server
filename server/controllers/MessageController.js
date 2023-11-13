@@ -99,8 +99,8 @@ var MessageController = {
                     message.Reply!=null?message.Reply._id:null,
                 ));
             });
-            console.log(queryMessages)
-            console.log(resMessages)
+            // console.log(queryMessages)
+            // console.log(resMessages)
 
             res.json(Controller.Success({ messages: resMessages }));  
         }  
