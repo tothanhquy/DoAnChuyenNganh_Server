@@ -3,11 +3,12 @@
 /**
  * Module dependencies.
  */
-
 require('dotenv').config();
-var app = require('../app');
+var App = require('../app');
+var app = App.app;
 var debug = require('debug')('server:server');
 var http = require('http');
+const MainSocket = require('../controllers/Socket/MainSocket');
 /**
  * Get port from environment and store in Express.
  */
@@ -19,12 +20,25 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+var socketio = require("socket.io")(server);
 
+socketio.on("connection", (socket)=>{
+  // console.log(socket.id);
+  MainSocket.MainSocket(socketio, socket);
+});
 /**
  * Listen on provided port, on all network interfaces.
  */
+app.use(function(req, res, next) {
+  // console.log("middleware")
+  req.io = socketio;
+  req.lang = req.cookies.lang || 'vi';
+  next();
+});
+App.setRouter(app)
 
 server.listen(port);
+console.log("listen:"+port)
 server.on('error', onError);
 server.on('listening', onListening);
 

@@ -35,71 +35,76 @@ app.use(session({
 }));
 
 //socket.io
-var server = require("http").Server(app);
-var socketio = require("socket.io")(server);
+// var server = require("http").Server(app);
+// var socketio = require("socket.io")(server,{
+//   path: "/socket/"
+// });
 
-socketio.on("connection", (socket)=>{
-  MainSocket.MainSocket(socketio, socket);
-});
+// socketio.on("connection", (socket)=>{
+//   console.log(socket.id);
+//   socket.emit('connect', {message: 'một khách hàng mới được kết nối'});
+//   socket.on('disconnect', function () {
+//     console.log('user disconnected');
+//   });
+//   // MainSocket.MainSocket(socketio, socket);
+// });
 
-app.use(function(req, res, next) {
-  req.io = socketio;
-  req.lang = req.cookies.lang || 'vi';
-  next();
-});
+// app.use(function(req, res, next) {
+//   // req.io = socketio;
+//   req.lang = req.cookies.lang || 'vi';
+//   next();
+// });
 
-
-var indexRouter = require('./routes/index');
-// app.use('/', indexRouter);
-
-var accountsRouter = require('./routes/AccountRouter');
-app.use('/Account', accountsRouter);
-
-var adminRouter = require('./routes/AdminRouter');
-app.use('/Admin', adminRouter);
-
-var skillsRouter = require('./routes/SkillRouter');
-app.use('/Skill', skillsRouter);
-
-var userProfileRouter = require('./routes/UserProfileRouter');
-app.use('/UserProfile', userProfileRouter);
-
-var teamProfileRouter = require('./routes/TeamProfileRouter');
-app.use('/TeamProfile', teamProfileRouter);
-
-var requestRouter = require('./routes/RequestRouter');
-app.use('/Request', requestRouter);
-
-var postRouter = require('./routes/PostRouter');
-app.use('/Post', postRouter);
-
-var friendRouter = require('./routes/FriendRouter');
-app.use('/Friend', friendRouter);
-
-var chanelChatRouter = require('./routes/ChanelChatRouter');
-app.use('/ChanelChat', chanelChatRouter);
-
-var messageRouter = require('./routes/MessageRouter');
-app.use('/Message', messageRouter);
-
-
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  res.locals.layout = './layouts/layout_user';
-  res.render('error', { title: 'Error'});
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-
-
-module.exports = app;
+module.exports.app = app;
+module.exports.setRouter = function(app){
+  var indexRouter = require('./routes/index');
+  // app.use('/', indexRouter);
+  
+  var accountsRouter = require('./routes/AccountRouter');
+  app.use('/Account', accountsRouter);
+  
+  var adminRouter = require('./routes/AdminRouter');
+  app.use('/Admin', adminRouter);
+  
+  var skillsRouter = require('./routes/SkillRouter');
+  app.use('/Skill', skillsRouter);
+  
+  var userProfileRouter = require('./routes/UserProfileRouter');
+  app.use('/UserProfile', userProfileRouter);
+  
+  var teamProfileRouter = require('./routes/TeamProfileRouter');
+  app.use('/TeamProfile', teamProfileRouter);
+  
+  var requestRouter = require('./routes/RequestRouter');
+  app.use('/Request', requestRouter);
+  
+  var postRouter = require('./routes/PostRouter');
+  app.use('/Post', postRouter);
+  
+  var friendRouter = require('./routes/FriendRouter');
+  app.use('/Friend', friendRouter);
+  
+  var chanelChatRouter = require('./routes/ChanelChatRouter');
+  app.use('/ChanelChat', chanelChatRouter);
+  
+  var messageRouter = require('./routes/MessageRouter');
+  app.use('/Message', messageRouter);
+  
+  
+  // catch 404 and forward to error handler
+  app.use(function (req, res, next) {
+    res.locals.layout = './layouts/layout_user';
+    res.render('error', { title: 'Error'});
+  });
+  
+  // error handler
+  app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+  
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+  });
+}

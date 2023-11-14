@@ -9,15 +9,19 @@ module.exports.MainSocket = (io, socket)=>{
         Room.OutRooms(io, socket, roomsOfThisSocket, data);
         roomsOfThisSocket = [];
         roomsOfThisSocket = await Room.JoinPersonalRoom(io, socket, roomsOfThisSocket, data);
+        console.log(roomsOfThisSocket)
     });
     socket.on(SocketEventNames.RECEIVE.JoinChanelChatRooms, async (data)=>{
         roomsOfThisSocket = await Room.JoinChanelChatRooms(io, socket, roomsOfThisSocket, data);
+        console.log(roomsOfThisSocket)
     });
     socket.on(SocketEventNames.RECEIVE.JoinRealChatChanelChatRooms, async (data)=>{
         roomsOfThisSocket = await Room.JoinRealChatChanelChatRoom(io, socket, roomsOfThisSocket, data);
+        console.log(roomsOfThisSocket)
     });
     socket.on(SocketEventNames.RECEIVE.OutRealChatChanelChatRooms, async (data)=>{
         roomsOfThisSocket = await Room.OutRealChatChanelChatRoom(io, socket, roomsOfThisSocket, data);
+        console.log(roomsOfThisSocket)
     });
     socket.on(SocketEventNames.RECEIVE.OutAllRoom,(data)=>{
         Room.OutRooms(io, socket, roomsOfThisSocket, data);

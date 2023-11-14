@@ -87,6 +87,7 @@ var ChanelChatController = {
             chanelChats.forEach((e)=>{
                 let indexInUsersSeen = e.LastTimeMemberSeen.findIndex((us)=>us.User.toString()==idAccount);
                 let numberOfNewMessages = indexInUsersSeen==-1?0:e.LastTimeMemberSeen[indexInUsersSeen].Number;
+                console.log(e.LastMessage)
                 if(e.Type==ChanelChatModel.ChanelChatType.Friend){
                     let friend = e.Members[0]._id.toString()==idAccount?e.Members[1]:e.Members[0];
                     if(myfriends.indexOf(friend._id.toString())==-1){
@@ -763,6 +764,7 @@ var ChanelChatController = {
             }
         }  
         catch (error) {  
+            console.log(error)
             return false;
         }  
     },
