@@ -87,7 +87,6 @@ var ChanelChatController = {
             chanelChats.forEach((e)=>{
                 let indexInUsersSeen = e.LastTimeMemberSeen.findIndex((us)=>us.User.toString()==idAccount);
                 let numberOfNewMessages = indexInUsersSeen==-1?0:e.LastTimeMemberSeen[indexInUsersSeen].Number;
-                console.log(e.LastMessage)
                 if(e.Type==ChanelChatModel.ChanelChatType.Friend){
                     let friend = e.Members[0]._id.toString()==idAccount?e.Members[1]:e.Members[0];
                     if(myfriends.indexOf(friend._id.toString())==-1){
@@ -631,11 +630,11 @@ var ChanelChatController = {
         try {
             let idAccount = idUser;
 
-            let resAction = await ChanelChatModel.getChanelChatsOfUser(idAccount, req.lang);
+            let resAction = await ChanelChatModel.getChanelChatsOfUser(idAccount, "default");
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 return [];
             }
-            let chanelChats = resAction.data.filter(e=> e.Type!==ChanelChatModel.ChanelChatType.Team || e.Team.Members.indexOf(idAccount)!=-1) || [];
+            let chanelChats = resAction.data;
             let resIdChanelChats = [];
             chanelChats.forEach((e)=>{
                 resIdChanelChats.push(e._id);
@@ -643,6 +642,7 @@ var ChanelChatController = {
             return resIdChanelChats;
         }  
         catch (error) {  
+            console.log(error)
             return [];
         }  
     },
@@ -654,7 +654,7 @@ var ChanelChatController = {
                 return false; 
             }
 
-            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let resAction = await ChanelChatModel.getDataById(idChanelChat,"default");
             let queryChanelChat = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 return false;
@@ -670,7 +670,7 @@ var ChanelChatController = {
             //update
             let updateFields = {$set:{Members:queryChanelChat.Members,LastTimeAction:queryChanelChat.LastTimeAction}};
             
-            resAction = await ChanelChatModel.updateChanelChat(queryChanelChat._id, updateFields,req.lang);
+            resAction = await ChanelChatModel.updateChanelChat(queryChanelChat._id, updateFields,"default");
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 return false;
             } else {
@@ -678,6 +678,7 @@ var ChanelChatController = {
             }
         }  
         catch (error) {  
+            console.log(error);
             return false;
         }  
     },
@@ -698,7 +699,7 @@ var ChanelChatController = {
     },
     //not http. is tool for other controller 
     //return true or false
-    updateLastMessageOfChanelChat: async (idChanelChat, idLastMassage, contentLastMessage, timeLastMessage, idCreator, numberOfNewMessages) => {
+    updateLastMessageOfChanelChat: async (req, idChanelChat, idLastMassage, contentLastMessage, timeLastMessage, idCreator, numberOfNewMessages) => {
         try {
             if (idChanelChat == undefined || idChanelChat == "") {
                 return false; 
@@ -733,11 +734,12 @@ var ChanelChatController = {
                 }else{
                     if(e==idCreator){
                         queryChanelChat.LastTimeMemberSeen[ind].Number = 0;
+                        queryChanelChat.LastTimeMemberSeen[ind].Message = idLastMassage;
                     }else{
                         queryChanelChat.LastTimeMemberSeen[ind].Number+=numberOfNewMessages;
                     }
                 }
-                if(queryChanelChat.LastTimeMemberSeen[ind].Number!=0){
+                // if(queryChanelChat.LastTimeMemberSeen[ind].Number!=0){
                     notifiLastNewMessagesSocket.push(new ChanelChatResponse.LastNewMessageSocket(
                         contentLastMessage,
                         timeLastMessage,
@@ -745,7 +747,7 @@ var ChanelChatController = {
                         e.toString(),
                         queryChanelChat.LastTimeMemberSeen[ind].Number
                     ));
-                }
+                // }
             });
 
             queryChanelChat.LastTimeAction = Date.now();
@@ -798,7 +800,7 @@ var ChanelChatController = {
                 res.json(Controller.Success({ isComplete: true }));  
                 return;
             }else{
-                if(editChanelChat.LastTimeMemberSeen[ind].Message.toString()!=editChanelChat.LastMessage.toString()){
+                if(editChanelChat.LastTimeMemberSeen[ind].Message==null||editChanelChat.LastTimeMemberSeen[ind].Message.toString()!=editChanelChat.LastMessage._id.toString()){
                     editChanelChat.LastTimeMemberSeen[ind].Number = 0;
                     editChanelChat.LastTimeMemberSeen[ind].Message = editChanelChat.LastMessage;
                 
@@ -810,7 +812,7 @@ var ChanelChatController = {
                         return;
                     } else {
                         //send socket
-                        ChanelChatSocket.notifiUserSeen(req.io, idChanelChat, idAccount, editChanelChat.LastMessage.toString());
+                        ChanelChatSocket.notifiUserSeen(req.io, idChanelChat, idAccount, editChanelChat.LastMessage._id.toString());
     
                         res.json(Controller.Success({ isComplete: true }));  
                         return;

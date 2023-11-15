@@ -120,7 +120,7 @@ module.exports.CheckAndGetAuthenUser = async (req) => {
         if (!token) {
             return false;
         } else {
-            return await checkAndGetAuthJWT(token,req);
+            return await checkAndGetAuthJWT(token,req.lang);
             // let verifyData = await JWTVerify(token, JWT_SECRET);
             // if (verifyData === false) {
             //     return false;
@@ -160,7 +160,7 @@ module.exports.CheckAndGetAuthenUser = async (req) => {
         return false;
     }
 };
-const checkAndGetAuthJWT = async (jwt,req)=>{
+const checkAndGetAuthJWT = async (jwt,lang='default')=>{
     let verifyData = await JWTVerify(jwt, JWT_SECRET);
     if (verifyData === false) {
         return false;
@@ -169,7 +169,7 @@ const checkAndGetAuthJWT = async (jwt,req)=>{
         let accessTokenString = verifyData.accessToken;
 
         //check in db
-        let resAction = await AccountModel.getDataById(id, req.lang); 
+        let resAction = await AccountModel.getDataById(id, lang); 
         let account = resAction.data;
         if (
             resAction.status === ModelResponse.ResStatus.Fail

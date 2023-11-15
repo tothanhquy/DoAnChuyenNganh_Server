@@ -54,7 +54,7 @@ var TeamController = {
                     return;
                 }
                 //create team chanel chat
-                resAction = await ChanelChatModel.createTeamChanelChat(newTeamid,req.lang);
+                resAction = await ChanelChatModel.createTeamChanelChat(newTeamid,idAccount,req.lang);
                 let chanelChat = resAction.data;
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));

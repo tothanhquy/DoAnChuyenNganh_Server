@@ -9,6 +9,7 @@ var Auth = require('../core/Auth');
 const Mail = require('../core/Mail');
 var Controller = require('./Controller');
 const RequestResponse = require("../client_data_response_models/Request");
+const ChanelChatController = require("./ChanelChatController")
 
 const GET_LIST_LIMIT_REQUESTS = 10;
 
@@ -454,7 +455,7 @@ var RequestController = {
                             return;
                         }
                         let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
-
+                        console.log(updateChanelChat)
                     }
                     editRequest.IsAgree = true;
                 }
@@ -466,7 +467,7 @@ var RequestController = {
                 }
                 editRequest.IsWaiting = false;
             }
-            //update request
+            // update request
             resAction = await RequestModel.updateRequest(editRequest._id, editRequest,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   

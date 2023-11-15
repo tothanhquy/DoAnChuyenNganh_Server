@@ -156,13 +156,13 @@ module.exports.createFriendChanelChat = async function(id_user, id_friend, langu
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }
-module.exports.createTeamChanelChat = async function(id_team, languageMessage){ 
+module.exports.createTeamChanelChat = async function(id_team, idAccount, languageMessage){ 
     try {
         const ChanelChat = new ChanelChatModel({
             Name: "",
             Type: ChanelChatType.Team,
             Image: "",
-            Members: [],
+            Members: [idAccount],
             GroupOwner: null,
             LastTimeAction:Date.now(),
             Team: new mongoose.Types.ObjectId(id_team),

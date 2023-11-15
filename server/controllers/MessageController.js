@@ -6,6 +6,7 @@ var MessageModel = require('../models/MessageModel');
 var Controller = require('./Controller');
 var ChanelChatController = require('./ChanelChatController');
 const MessageSocket = require("../controllers/Socket/MessageSocket");
+const ChanelChatSocket = require("../controllers/Socket/ChanelChatSocket");
 const MessageResponse = require("../client_data_response_models/Message");
 
 const LIMIT_MESSAGES_PER_RESQUEST = 30;
@@ -46,13 +47,13 @@ var MessageController = {
         try {
             let idAccount = req.user.id;
             let idChanelChat = req.query.id_chanel_chat;
-            let lastTime = req.query.last_time;
+            let lastTime = parseInt(req.query.last_time);
 
             if (idChanelChat == undefined || idChanelChat == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            if (lastTime == undefined || lastTime == "" || !Number.isInteger(lastTime)) {
+            if (lastTime == undefined || lastTime == "" || isNaN(lastTime)) {
                 lastTime = Date.now();
             }
 
@@ -114,17 +115,17 @@ var MessageController = {
         try {
             let idAccount = req.user.id;
             let idChanelChat = req.query.id_chanel_chat;
-            let lastTime = req.query.last_time;
-            let startTime = req.query.start_time;
+            let lastTime = parseInt(req.query.last_time);
+            let startTime = parseInt(req.query.start_time);
 
             if (idChanelChat == undefined || idChanelChat == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            if (lastTime == undefined || lastTime == "" || !Number.isInteger(lastTime)) {
+            if (lastTime == undefined || lastTime == "" || isNaN(lastTime)) {
                 lastTime = Date.now();
             }
-            if (startTime == undefined || startTime == "" || !Number.isInteger(startTime)) {
+            if (startTime == undefined || startTime == "" || isNaN(startTime)) {
                 startTime = 0;
             }
 
@@ -148,7 +149,7 @@ var MessageController = {
                 return;
             }
             
-            let resMessages = MessageResponse.Messages;
+            let resMessages = new MessageResponse.Messages();
             resMessages.isFinish = false;
 
             queryMessages.forEach((message)=>{
@@ -168,6 +169,7 @@ var MessageController = {
             res.json(Controller.Success({ messages: resMessages }));  
         }  
         catch (error) {  
+            console.log(error);
             res.json(Controller.Fail(Message(req.lang, "system_error")));  
         }  
     },
@@ -178,7 +180,6 @@ var MessageController = {
             let idChanelChat = req.body.id_chanel_chat;
             let idReply = req.body.id_reply;
             let content = req.body.content;
-            console.log(req.body)
 
             if (idChanelChat == undefined || idChanelChat == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
@@ -211,11 +212,11 @@ var MessageController = {
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
             }
-
+            let queryReply = null;
             if(idReply!=null){
                 //check exist reply
                 resAction = await MessageModel.getDataById(idReply,req.lang);
-                let queryReply = resAction.data;
+                queryReply = resAction.data;
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));
                     console.log(2)
@@ -250,8 +251,7 @@ var MessageController = {
             }
 
             //update chanel chat
-            let resupdateLastMessageOfChanelChat = ChanelChatController.updateLastMessageOfChanelChat(idChanelChat, queryInsertMessages[newMessageCount-1]._id, queryInsertMessages[newMessageCount-1].Content,queryInsertMessages[newMessageCount-1].Time, idAccount, newMessageCount);
-           
+            let resupdateLastMessageOfChanelChat = await ChanelChatController.updateLastMessageOfChanelChat(req, idChanelChat, queryInsertMessages[newMessageCount-1]._id, queryInsertMessages[newMessageCount-1].Content,queryInsertMessages[newMessageCount-1].Time, idAccount, newMessageCount);
             //send to socket
             let socketResponseMessages=[];
             queryInsertMessages.forEach((e,index)=>{
@@ -261,12 +261,14 @@ var MessageController = {
                     e.Owner.toString(),
                     e.ChanelChat.toString(),
                     e.Time,
-                    e.Reply==null?null:queryReply.Content,//only once repy for first message of new messages
-                    e.Reply==null?null:queryReply.Time,
-                    e.Reply==null?null:queryReply._id,
+                    queryReply==null?null:queryReply.Content,//only once repy for first message of new messages
+                    queryReply==null?null:queryReply.Time,
+                    queryReply==null?null:queryReply._id,
                 ));
             });
             MessageSocket.sendRealTimeMessages(req.io, idChanelChat, socketResponseMessages);
+
+            ChanelChatSocket.notifiUserSeen(req.io, idChanelChat, idAccount, queryInsertMessages[newMessageCount-1]._id);
 
             res.json(Controller.Success({ isCompleted: true }));  
         }  
