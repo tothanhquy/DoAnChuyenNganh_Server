@@ -21,7 +21,7 @@ module.exports.notifiLastMessageForMembers = (io, notifiLastNewMessagesSocket)=>
                 io,
                 Room.ROOM_NAME_PRIFIX.User+element.idReceiveUser,
                 SocketEventNames.SEND.ChanelChatNotifiLastMessage,
-                {element});
+                element);
         });
     }catch(err){
         console.log(err)
