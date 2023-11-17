@@ -71,6 +71,20 @@ module.exports.getChanelChatsOfUser = async (id_user, languageMessage)=>{
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
+module.exports.getDataByIdPopulateGroupOwner = async (id,languageMessage)=>{
+    try {
+        let resAction = await ChanelChatModel.findOne({ _id: id }).populate("Team").populate("GroupOwner").populate('LastMessage');
+        if (resAction == null) {
+            return ModelResponse.Fail(Message(languageMessage,"chanel_chat_not_exist")); 
+        } else {
+            return ModelResponse.Success(resAction);
+        }
+            
+    } catch (err) {
+        console.log(err)
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
 module.exports.getDataByIdPopulateMembers = async (id,languageMessage)=>{
     try {
         let resAction = await ChanelChatModel.findOne({ _id: id }).populate("Team").populate("Members").populate('LastMessage');

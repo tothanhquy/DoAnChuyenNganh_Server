@@ -1,0 +1,23 @@
+const GeneratesKey = require("./GeneratesKey")
+const TypeObject = require("./TypeObject")
+const DirectLink = require("./DirectLink")
+const TypeNotification = require("./TypeNotification")
+const Messages = require("./MessageNotification/Messages")
+const GrammarObject = require("./MessageNotification/GrammarObject")
+
+module.exports.TypeObject = TypeObject;
+module.exports.DirectLink = DirectLink;
+module.exports.GrammarObject = GrammarObject;
+module.exports.generatesKey = GeneratesKey;
+module.exports.TypeNotification = TypeNotification;
+module.exports.getMessageByCode = function(languageMessage, code){
+    for(let key in TypeNotification){
+        if(TypeNotification[key].Code==code){
+            return Messages(languageMessage, TypeNotification[key].Message);
+        }
+    }
+    return Messages(languageMessage, "default_message");
+}
+module.exports.getMessage = function(languageMessage, message){
+    return Messages(languageMessage, message);
+}

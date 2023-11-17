@@ -79,4 +79,6 @@
 
     ,"message_content_constraint":"Chiều dài tin nhắn tối thiểu 1 và tối đa {{length}} ký tự."
     ,"message_not_exist":"Tin nhắn không tồn tại."
+
+    ,"notification_not_exist":"Thông báo không tồn tại."
 }

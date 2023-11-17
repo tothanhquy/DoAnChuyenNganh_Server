@@ -79,4 +79,7 @@
 
     ,"message_content_constraint":"Minimum message length 1 and maximum {{length}} characters."
     ,"message_not_exist":"Message is not exist."
+
+
+    ,"notification_not_exist":"Notification is not exist."
 }

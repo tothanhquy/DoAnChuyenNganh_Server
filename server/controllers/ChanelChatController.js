@@ -5,6 +5,7 @@ var ChanelChatSocket = require('../controllers/Socket/ChanelChatSocket');
 var AccountModel = require('../models/AccountModel');
 var Controller = require('./Controller');
 const ChanelChatResponse = require("../client_data_response_models/ChanelChat");
+const NotificationTool = require("./Tool/Notification");
 const Path = require('path');
 const fs = require('fs');
 
@@ -219,7 +220,7 @@ var ChanelChatController = {
                 return; 
             }
 
-            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let resAction = await ChanelChatModel.getDataByIdPopulateGroupOwner(idChanelChat,req.lang);
             let editChanelChat = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
@@ -238,7 +239,12 @@ var ChanelChatController = {
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
             }
-            
+            //notification receive users
+            let notificationReceiveUsers=[];
+            notificationReceiveUsers=editChanelChat.Members.map(e=>e.toString());
+            notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idAccount);
+            let oldName = editChanelChat.Name;
+
             editChanelChat.Name = newName;
             editChanelChat.LastTimeAction = Date.now();
             //update
@@ -248,6 +254,14 @@ var ChanelChatController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                NotificationTool.changeNameGroupChat(req,
+                    notificationReceiveUsers,
+                    editChanelChat.GroupOwner._id,
+                    editChanelChat.GroupOwner.Name,
+                    oldName,
+                    editChanelChat._id,
+                    newName)
+
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
@@ -558,7 +572,7 @@ var ChanelChatController = {
             }
 
             //check account in members
-            let resAction = await ChanelChatModel.getDataById(idChanelChat,req.lang);
+            let resAction = await ChanelChatModel.getDataByIdPopulateGroupOwner(idChanelChat,req.lang);
             let editChanelChat = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
@@ -598,10 +612,13 @@ var ChanelChatController = {
                 return;
             }
 
+            //notification receive users
+            let notificationReceiveUsers=[];
             //push
             id_members.forEach((new_member)=>{
                 if(editChanelChat.Members.indexOf(new_member)==-1){
                     editChanelChat.Members.push(new_member);
+                    notificationReceiveUsers.push(new_member);
                 }
             });
 
@@ -614,6 +631,14 @@ var ChanelChatController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                NotificationTool.insertUsersToGroupChat(
+                    req,
+                    notificationReceiveUsers,
+                    editChanelChat.GroupOwner._id,
+                    editChanelChat.GroupOwner.Name,
+                    editChanelChat._id,
+                    editChanelChat.Name);
+
                 res.json(Controller.Success({ isComplete: true }));  
                 return;
             }

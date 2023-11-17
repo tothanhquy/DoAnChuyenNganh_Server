@@ -1,0 +1,9 @@
+{
+    "default_message":"Notification content"
+    ,"subjects_plus_person":" and {{count}} other persons"
+
+    ,"add_you_into_group_chat":"{{Subjects}} added you into group chat {{SubObject}}."
+    ,"change_name_group_chat":"{{Subjects}} changed name of group chat {{SubObject}} to {{MainObject}}."
+
+
+}

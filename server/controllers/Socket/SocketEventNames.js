@@ -3,6 +3,7 @@ module.exports.SEND = {
     ChanelChatNotifiLastMessage:"chanel-chat-notifi-last-message",
     ChanelChatNewMessages:"chanel-chat-new-messages",
     ChanelChatYouHasNewChanel:"chanel-chat-you-has-new-chanel",
+    NotificationNew:"notification-new",
     
 }
 module.exports.RECEIVE = {

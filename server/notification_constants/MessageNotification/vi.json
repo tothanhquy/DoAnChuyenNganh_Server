@@ -1,0 +1,9 @@
+{
+    "default_message":"Nội dung thông báo"
+    ,"subjects_plus_person":" và {{count}} người khác"
+
+    ,"add_you_into_group_chat":"{{Subjects}} đã thêm bạn vào nhóm chat {{SubObject}}."
+    ,"change_name_group_chat":"{{Subjects}} đã đổi tên nhóm chat {{SubObject}} thành {{MainObject}}."
+
+
+}
