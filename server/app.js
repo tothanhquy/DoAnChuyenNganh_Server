@@ -89,6 +89,9 @@ module.exports.setRouter = function(app){
   
   var messageRouter = require('./routes/MessageRouter');
   app.use('/Message', messageRouter);
+
+  var notificationRouter = require('./routes/NotificationRouter');
+  app.use('/Notification', notificationRouter);
   
   
   // catch 404 and forward to error handler
