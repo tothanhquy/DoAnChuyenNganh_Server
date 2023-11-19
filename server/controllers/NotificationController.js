@@ -107,7 +107,7 @@ var NotificationController = {
             
             //update
             let updateFields = {$set:{WasRead:true}};
-            resAction = await ChanelChatModel.updateChanelChat(queryNotification._id, updateFields,req.lang);
+            resAction = await NotificationModel.updateNotification(queryNotification._id, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;
@@ -123,44 +123,59 @@ var NotificationController = {
         }  
     },
     //not http. is tool for other controller 
-    createOrUpdateNotification: async (req,notification) => {
+    createOrUpdateNotification: async (req,notification,isOnceSubject=false) => {
         try {
             let resAction = await NotificationModel.checkAndGetDataByKey(notification.ReceiveUser,notification.Key,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
+                console.log(resAction.error);
                 return false;
             }
             let queryNotification = resAction.data;
             if(queryNotification===null){
                 //create
-                resAction = await NotificationModel.checkAndGetDataByKey(notification,req.lang);
+                resAction = await NotificationModel.createNotification(notification,req.lang);
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    console.log(resAction.error);
                     return false;
                 }
                 //send socket
-                NotificationSocket.sendNewNitification(req.io,notification.ReceiveUser.toString(),resAction.data.id);
+                NotificationSocket.sendNewNitification(req.io,notification.ReceiveUser.toString(),resAction.data.id.toString());
 
             }else{
                 //update
-                queryNotification.Subjects = [notification.Subjects,...queryNotification.Subjects];
-                if(queryNotification.Subjects.length>MAXIMUM_ITEM_IN_SUBJECTS_FIELD){
-                    queryNotification.Subjects.splice(MAXIMUM_ITEM_IN_SUBJECTS_FIELD);
+                if(isOnceSubject===true){
+                    queryNotification.Subjects = notification.Subjects;
+                    queryNotification.SubjectCount = 1;
+                }else{
+                    queryNotification.Subjects = [notification.Subjects,...queryNotification.Subjects];
+                    if(queryNotification.Subjects.length>MAXIMUM_ITEM_IN_SUBJECTS_FIELD){
+                        queryNotification.Subjects.splice(MAXIMUM_ITEM_IN_SUBJECTS_FIELD);
+                    }
+                    queryNotification.SubjectCount+=notification.Subjects.length;
                 }
-                queryNotification.SubjectCount+=notification.Subjects.length;
+                
                 queryNotification.WasRead = false;
                 queryNotification.CreatedAt = notification.CreatedAt;
+                queryNotification.MainObject = notification.MainObject;
+                queryNotification.SubObject = notification.SubObject;
+                queryNotification.ContextObject = notification.ContextObject;
 
                 let updateFields = {$set:{
                     Subjects:queryNotification.Subjects,
                     SubjectCount:queryNotification.SubjectCount,
                     WasRead:queryNotification.WasRead,
                     CreatedAt:queryNotification.CreatedAt,
+                    MainObject:queryNotification.MainObject,
+                    SubObject:queryNotification.SubObject,
+                    ContextObject:queryNotification.ContextObject,
                 }};
-                resAction = await ChanelChatModel.updateChanelChat(queryNotification._id, updateFields,req.lang);
+                resAction = await NotificationModel.updateNotification(queryNotification._id, updateFields,req.lang);
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    console.log(resAction.error);
                     return false;
                 } else {
                     //send socket
-                    NotificationSocket.sendNewNitification(req.io,queryNotification.ReceiveUser.toString(),queryNotification._id);
+                    NotificationSocket.sendNewNitification(req.io,queryNotification.ReceiveUser.toString(),queryNotification._id.toString());
                 }
             }
             return true; 
@@ -170,11 +185,25 @@ var NotificationController = {
             return false; 
         }  
     },
+     //not http. is tool for other controller 
+    getNumberTotalNotReadNotificationsOfUser: async (req,idUser) => {
+        try {
+            let resAction = await NotificationModel.getNumberTotalNotReadNotificationsOfUser(idUser,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return 0;
+            }
+            return resAction.data;
+        }  
+        catch (error) {  
+            console.log(error)
+            return 0; 
+        }  
+    },
     
 }  
 
 const convertToNotificationResponse=function(notifi, language){
-    let resNotifi = NotificationResponse.Notification();
+    let resNotifi = new NotificationResponse.Notification();
     resNotifi.id = notifi._id;
     resNotifi.time = notifi.CreatedAt;
     resNotifi.wasRead = notifi.WasRead;
@@ -182,7 +211,7 @@ const convertToNotificationResponse=function(notifi, language){
 
     resNotifi.content = NotificationContant.getMessageByCode(language,notifi.TypeCode);
     //subjects
-    if(resNotifi.Subjects!=null){
+    if(notifi.Subjects!=null){
         let subjects = "";
         notifi.Subjects.forEach((e,ind)=>{
             if(ind<MAXIMUM_NAME_IN_SUBJECTS_OBJECT_MESSAGE){
@@ -197,31 +226,31 @@ const convertToNotificationResponse=function(notifi, language){
         }
         let newRange = getStyleRange(NotificationResponse.StyleOfRange.Bold,resNotifi.content,NotificationContant.GrammarObject.Subjects,subjects.length);
         if(newRange!=null)resNotifi.styleRanges.push(newRange);
-        resNotifi.content.replace(NotificationContant.GrammarObject.Subjects,subjects);
+        resNotifi.content=resNotifi.content.replace(NotificationContant.GrammarObject.Subjects,subjects);
     }
 
     //mainObject
-    if(resNotifi.MainObject!=null){
-        let mainObject = resNotifi.MainObject.Name;
+    if(notifi.MainObject!=null){
+        let mainObject = notifi.MainObject.Name;
         let newRange = getStyleRange(NotificationResponse.StyleOfRange.Bold,resNotifi.content,NotificationContant.GrammarObject.MainObject,mainObject.length);
         if(newRange!=null)resNotifi.styleRanges.push(newRange);
-        resNotifi.content.replace(NotificationContant.GrammarObject.MainObject,mainObject);
+        resNotifi.content=resNotifi.content.replace(NotificationContant.GrammarObject.MainObject,mainObject);
     }
 
     //subObject
-    if(resNotifi.SubObject!=null){
-        let subObject = resNotifi.SubObject.Name;
+    if(notifi.SubObject!=null){
+        let subObject = notifi.SubObject.Name;
         let newRange = getStyleRange(NotificationResponse.StyleOfRange.Bold,resNotifi.content,NotificationContant.GrammarObject.SubObject,subObject.length);
         if(newRange!=null)resNotifi.styleRanges.push(newRange);
-        resNotifi.content.replace(NotificationContant.GrammarObject.SubObject,subObject);
+        resNotifi.content=resNotifi.content.replace(NotificationContant.GrammarObject.SubObject,subObject);
     }
 
     //contextObject
-    if(resNotifi.ContextObject!=null){
-        let contextObject = resNotifi.ContextObject.Name;
+    if(notifi.ContextObject!=null){
+        let contextObject = notifi.ContextObject.Name;
         let newRange = getStyleRange(NotificationResponse.StyleOfRange.Bold,resNotifi.content,NotificationContant.GrammarObject.ContextObject,contextObject.length);
         if(newRange!=null)resNotifi.styleRanges.push(newRange);
-        resNotifi.content.replace(NotificationContant.GrammarObject.ContextObject,contextObject);
+        resNotifi.content=resNotifi.content.replace(NotificationContant.GrammarObject.ContextObject,contextObject);
     }
 
     return resNotifi;

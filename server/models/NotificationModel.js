@@ -81,6 +81,16 @@ module.exports.getDataById = async (id,languageMessage)=>{
             return ModelResponse.Success(resAction);
         }
     } catch (err) {
+        console.log(err)
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
+module.exports.getNumberTotalNotReadNotificationsOfUser = async (idUser, languageMessage)=>{
+    try {
+        let count = await NotificationModel.countDocuments({ ReceiveUser: idUser, WasRead:false });
+        return ModelResponse.Success(count);
+    } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -93,6 +103,7 @@ module.exports.checkAndGetDataByKey = async (idUser, key, languageMessage)=>{
             return ModelResponse.Success(resAction);
         }
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
@@ -101,6 +112,7 @@ module.exports.createNotification = async function(newNotification,languageMessa
         resAction = await NotificationModel.create(newNotification);
         return ModelResponse.Success({id:resAction._id});
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }
@@ -113,6 +125,7 @@ module.exports.updateNotification = async (id,NotificationUpdate,languageMessage
             return ModelResponse.Success({isComplete: true});
         }
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     }
 }
@@ -121,6 +134,7 @@ module.exports.getNotificationsOfUserLimit = async (idUser,lastTime,limit,langua
         let resAction = await NotificationModel.find({ReceiveUser:idUser,CreatedAt:{$lte:lastTime}}).sort({CreatedAt:-1}).limit(limit);
         return ModelResponse.Success(resAction);
     } catch (err) {
+        console.log(err)
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }

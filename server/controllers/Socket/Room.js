@@ -128,8 +128,14 @@ module.exports.SendToRoom = (io, roomName, event, data)=>{
     try{
         console.log(roomName)
         if(io.sockets.adapter.rooms.has(roomName)){
-            io.to(roomName).emit(event, JSON.stringify(data));
-            console.log("data of room:"+roomName + ":"+JSON.stringify(data))
+            let dataSend;
+            if(typeof data === "string"){
+                dataSend = data;
+            }else{
+                dataSend = JSON.stringify(data);
+            }
+            io.to(roomName).emit(event, dataSend);
+            console.log("data of room:"+roomName + ":"+dataSend)
         }
     }catch(err){
         console.log(err)

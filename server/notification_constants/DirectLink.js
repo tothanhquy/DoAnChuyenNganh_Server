@@ -1,7 +1,6 @@
 module.exports = {
     ChanelChat:{
-        path:"chanelchat/",
-        Details:(id)=>this.path+"details/"+id,
+        Details:(id)=>"chanelchat/details/"+id,
 
     }
 

@@ -8,7 +8,8 @@ var AccountModel = require('../models/AccountModel');
 var Auth = require('../core/Auth');  
 const Mail = require('../core/Mail');
 var Controller = require('./Controller');
-
+const AccountResponse = require('../client_data_response_models/Account');
+const NotificationController = require('./NotificationController');
 
 //containt the function with business logics  
 var AccountController = {  
@@ -544,10 +545,16 @@ var AccountController = {
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
             } else {
-                res.json(Controller.Success({name:account.Name,avatar:account.Avatar,isVerifyEmail:account.IsVerifyEmail}));  
+                let resData = new AccountResponse.BasicDataUser();
+                resData.name = account.Name;
+                resData.avatar = account.Avatar;
+                resData.isVerifyEmail = account.IsVerifyEmail;
+                resData.numberNotReadNotifications = await NotificationController.getNumberTotalNotReadNotificationsOfUser(req,idAccount);
+                res.json(Controller.Success(resData));
             }
         }  
         catch (error) {  
+            console.log(error)
             res.json(Controller.Fail(Message(req.lang,"system_error")));   
         }  
     },

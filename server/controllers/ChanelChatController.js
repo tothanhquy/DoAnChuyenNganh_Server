@@ -256,10 +256,10 @@ var ChanelChatController = {
             } else {
                 NotificationTool.changeNameGroupChat(req,
                     notificationReceiveUsers,
-                    editChanelChat.GroupOwner._id,
+                    editChanelChat.GroupOwner._id.toString(),
                     editChanelChat.GroupOwner.Name,
                     oldName,
-                    editChanelChat._id,
+                    editChanelChat._id.toString(),
                     newName)
 
                 res.json(Controller.Success({ isComplete:true }));  
