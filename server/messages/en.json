@@ -82,4 +82,18 @@
 
 
     ,"notification_not_exist":"Notification is not exist."
+
+    ,"keyword_name_constraint":"Minimum Keyword length 1 and maximum {{length}} characters."
+    ,"keyword_not_exist":"Keyword is not exist."
+
+    ,"project_slogon_constraint":"Maximum Slogon length {{length}} characters."
+    ,"project_description_constraint":"Maximum Description length {{length}} characters."
+    ,"project_resource_alt_constraint":"Maximum Resource Alt length {{length}} characters."
+    ,"project_member_role_constraint":"Maximum Member Role length {{length}} characters."
+    ,"project_not_exist":"Project is not exist."
+    ,"project_name_constraint":"Minimum name length 1 and maximum {{length}} characters."
+    ,"project_tag_constraint":"Minimum tag length 1 and maximum {{length}} characters. Has not to contain whitespace."
+    ,"project_tag_number_constraint":"Maximum tag number is {{max}}."
+    ,"project_vote_star_constraint":"Maxim vote star is {{max}}"
+    
 }

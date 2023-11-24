@@ -68,6 +68,12 @@ module.exports.setRouter = function(app){
   
   var skillsRouter = require('./routes/SkillRouter');
   app.use('/Skill', skillsRouter);
+
+  var categoryKeywordRouter = require('./routes/CategoryKeywordRouter');
+  app.use('/CategoryKeyword', categoryKeywordRouter);
+  
+  var negativeReportKeywordRouter = require('./routes/NegativeReportKeywordRouter');
+  app.use('/NegativeReportKeyword', negativeReportKeywordRouter);
   
   var userProfileRouter = require('./routes/UserProfileRouter');
   app.use('/UserProfile', userProfileRouter);

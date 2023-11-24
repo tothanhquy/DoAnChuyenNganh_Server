@@ -81,4 +81,16 @@
     ,"message_not_exist":"Tin nhắn không tồn tại."
 
     ,"notification_not_exist":"Thông báo không tồn tại."
+    ,"keyword_name_constraint":"Từ khoá dài từ 1 đến {{length}} ký tự."
+    ,"keyword_not_exist":"Từ khóa không tồn tại."
+
+    ,"project_slogon_constraint":"Slogon dài tối đa {{length}} ký tự."
+    ,"project_description_constraint":"Mô tả dài tối đa {{length}} ký tự."
+    ,"project_resource_alt_constraint":"Chú thích tài nguyên dài tối đa {{length}} ký tự."
+    ,"project_member_role_constraint":"Vai trò thành viên dài tối đa {{length}} ký tự."
+    ,"project_not_exist":"Dự án không tồn tại."
+    ,"project_name_constraint":"Chiều dài tên tối thiểu 1 và tối đa {{length}} ký tự."
+    ,"project_tag_constraint":"Chiều dài tag tối thiểu 1 và tối đa {{length}} ký tự. Không được chứa khoảng trắng."
+    ,"project_tag_number_constraint":"Số lượng tag tối đa là {{max}}."
+    ,"project_vote_star_constraint":"Đánh giá tối đa {{max}} sao."
 }

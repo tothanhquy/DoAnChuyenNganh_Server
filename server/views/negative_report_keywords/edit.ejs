@@ -1,0 +1,29 @@
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <%- include('../admin_alert/alert'); -%>
+        <% if(locals.data){ %>
+        <div class="col-sm-12 col-xl-6">
+            <div class="bg-light rounded h-100 p-4">
+                <h6 class="mb-4">Edit Negative Report</h6>
+                <form target="_self" action="Admin/NegativeReportKeywords/Edit/<%= locals.data._id %>" method="POST" enctype="multipart/form-data">
+                    <div class="form-floating mb-3">
+                        <input value="<%=locals.data.Name%>" type="text" name="name" class="form-control" placeholder="name" id="name">
+                        <label for="name">Name</label>
+                    </div>
+                    <hr>
+                    <div class="form-check form-switch">
+                        <input <%=locals.data.IsActive?"checked":""%> value="active" name="is_active" class="form-check-input" type="checkbox" role="switch" id="is_active">
+                        <label class="form-check-label" for="is_active">Active</label>
+                    </div>
+                    <br><br><br>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                    <br><br><br>
+                    <a target="_self" href="/Admin/NegativeReportKeywords">
+                        <button type="button" class="btn btn-link m-2">Back to list</button>
+                    </a>
+                </form>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
