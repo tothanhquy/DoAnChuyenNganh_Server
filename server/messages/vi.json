@@ -24,12 +24,16 @@
     ,"account_is_not_user":"Tài khoản này không phải là người dùng."
     ,"datetime_is_unvalid":"Ngày giờ không hợp lệ."
     ,"error_with_save_file":"Lỗi trong việc lưu tệp tin."
+    ,"error_with_delete_file":"Lỗi trong việc xóa tệp tin."
     ,"file_only_image":"Chỉ cho phép hình ảnh."
+    ,"file_only_video":"Chỉ cho phép video."
     ,"file_only_pdf":"Chỉ cho phép file PDF."
     ,"must_upload_file_pdf":"Phải tải lên file PDF."
     ,"pdf_file_limit_size_kb":"Kích thước file PDF bị giới hạn {{size}} KB."
     ,"must_upload_file_image":"Phải tải lên file ảnh."
+    ,"must_upload_file_video":"Phải tải lên file video."
     ,"image_file_limit_size_kb":"Kích thước file ảnh bị giới hạn {{size}} KB."
+    ,"video_file_limit_size_kb":"Kích thước file video bị giới hạn {{size}} KB."
 
     ,"verify_email_title_email_template":"Về việc xác minh Email của bạn."
     ,"verify_email_content_email_template":"Xin chào {{name}}!\nĐể xác minh email này bạn hãy truy cập vào đường dẫn dưới đây:\n{{verify_url}}\n(Token hiệu lực trong {{token_time}} phút)\nTừ Startup Map Server\nĐây là email tự động, vui lòng không phản hồi."
@@ -93,4 +97,6 @@
     ,"project_tag_constraint":"Chiều dài tag tối thiểu 1 và tối đa {{length}} ký tự. Không được chứa khoảng trắng."
     ,"project_tag_number_constraint":"Số lượng tag tối đa là {{max}}."
     ,"project_vote_star_constraint":"Đánh giá tối đa {{max}} sao."
+    ,"resource_not_exist":"Tài nguyên không tồn tại."
+
 }

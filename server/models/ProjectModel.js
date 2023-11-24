@@ -69,13 +69,28 @@ const ProjectNegativeReport = new mongoose.Schema({
         required:true,
         ref: 'Accounts' 
     },
-    NegativeReport:{
+    NegativeReports:{
         type:[{
             type: mongoose.Schema.Types.ObjectId,
             required:true,
             ref: 'NegativeReportKeywords' 
         }],
         default:[]
+    },
+    Time:{
+        type:Number,
+        default:0,
+    },
+});
+const ProjectInvitingMember = new mongoose.Schema({
+    User:{
+        type: mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref: 'Accounts' 
+    },
+    Role:{
+        type:String,
+        default:null,
     },
     Time:{
         type:Number,
@@ -99,6 +114,10 @@ var ProjectSchema = new mongoose.Schema({
     },
     Members: {
         type: [ProjectMemberNow],
+        default:[]
+    },
+    InvitingMembers: {
+        type: [ProjectInvitingMember],
         default:[]
     },
     MembersHistory:{
@@ -167,6 +186,7 @@ module.exports.ProjectMemberNow = ProjectMemberNow;
 module.exports.ProjectVoteStar = ProjectVoteStar;
 module.exports.ProjectResource = ProjectResource;
 module.exports.ProjectNegativeReport = ProjectNegativeReport;
+module.exports.ProjectInvitingMember = ProjectInvitingMember;
 module.exports.MAXIMUM_TAG_COUNT = MAXIMUM_TAG_COUNT;
 
 module.exports.getDataById = async (id,languageMessage)=>{
@@ -187,6 +207,18 @@ module.exports.getProjectsOfUser = async (idUser,languageMessage)=>{
     try {
         let resAction = await ProjectModel.find({
             "Members.User":new mongoose.Types.ObjectId(idUser)
+        }).populate("Leader");
+        return ModelResponse.Success(resAction);
+            
+    } catch (err) {
+        console.log(err);
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
+module.exports.getProjectsWithUserAsInvitingMember = async (idUser,languageMessage)=>{
+    try {
+        let resAction = await ProjectModel.find({
+            "InvitingMembers.User":new mongoose.Types.ObjectId(idUser)
         }).populate("Leader");
         return ModelResponse.Success(resAction);
             

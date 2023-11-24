@@ -3,6 +3,7 @@ const Message = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
 var ProjectModel = require('../models/ProjectModel');  
 var CategoryKeywordModel = require('../models/CategoryKeywordModel');  
+var NegativeReportKeywordModel = require('../models/NegativeReportKeywordModel');  
 var AccountModel = require('../models/AccountModel');
 var Auth = require('../core/Auth');  
 const Mail = require('../core/Mail');
@@ -160,11 +161,11 @@ var ProjectController = {
         }  
     },
     //http get, authen
-    GetMyProjects: async (req, res) => { 
+    GetMyProjectsAndInvitingRequest: async (req, res) => { 
         try {
             let idAccount = req.user.id;
 
-            let projects = [];
+            let resObject = new ProjectResponse.MyProjectsAndRequest();
 
             let resAction = await ProjectModel.getProjectsOfUser(idAccount,req.lang);
             let queryProjects = resAction.data;
@@ -176,7 +177,7 @@ var ProjectController = {
             queryProjects.sort((a, b) => Controller.sortFunc(a.Name, b.Name, -1));
 
             queryProjects.forEach(element => {
-                projects.push(
+                resObject.projects.push(
                     new ProjectResponse.ProjectListItem(
                         element._id,
                         element.Name,
@@ -189,8 +190,14 @@ var ProjectController = {
                     )
                 );
             });
-            
-            res.json(Controller.Success({ projects: projects }));  
+            resAction = await ProjectModel.getProjectsWithUserAsInvitingMember(idAccount,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            resObject.invitingRequestNumber=resAction.data.length;
+
+            res.json(Controller.Success(resObject));  
         
         }  
         catch (error) {  
@@ -265,6 +272,7 @@ var ProjectController = {
                 
                 if (project.leaderId == account.id.toString()) {
                     project.relationship+='.'+ProjectResponse.Relationship.Leader;
+                    project.invitingMembersNumber=queryProject.InvitingMembers.length;
                 }
 
                 let checkMemberIndex = project.members.findIndex(a => a.id == account.id.toString());
@@ -913,6 +921,231 @@ var ProjectController = {
             res.json(Controller.Fail(Message(req.lang, "system_error")));
         }  
     },
+    //http post, authen
+    InviteNewMember: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+
+            let idProject = req.body.id_project;
+            let emailNewMember = req.body.email_new_member;
+            let role = req.body.role;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (emailNewMember == undefined || emailNewMember == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            let roleValid = ProjectModel.isValidMemberRole(role, language);
+            if (!roleValid.isValid) {
+                res.json(Controller.FailroleValid.error);
+                return;
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let editProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            if (editProject.Leader.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return;
+            }
+
+            resAction = await AccountModel.getDataByEmail(emailNewMember,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            let idNewMember = resAction.data._id;
+
+            let index = editProject.InvitingMembers.findIndex(e=>e.User.toString()==idNewMember);
+            if(index==-1){
+                let invitingMember = new ProjectModel.ProjectInvitingMember();
+                invitingMember.User = idNewMember;
+                invitingMember.Time = Date.now();
+                invitingMember.Role = role;
+                editProject.InvitingMembers.push(invitingMember);
+            }else{
+                res.json(Controller.Fail(Message(req.lang, "only_one_request_one_time")));
+                return;
+            }
+            //update
+            let updateFields = {$set:{
+                InvitingMembers:editProject.InvitingMembers
+            }};
+
+            resAction = await ProjectModel.updateProject(idProject, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            } else {
+                res.json(Controller.Success({ isComplete:true }));  
+                return;
+            }
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //http post, authen
+    UpdateInvitingMember: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+
+            let idProject = req.body.id_project;
+            let idInvitingMember = req.body.id_inviting_member;
+            let status = req.body.status;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (status != "agree" && status != "disagree" && status != "cencel") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let editProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            //check permission
+            if(status=="cancel"){
+                if (idInvitingMember == undefined || idInvitingMember == "") {
+                    res.json(Controller.Fail(Message(req.lang, "system_error")));
+                    return; 
+                }
+                if (editProject.Leader.toString() != idAccount) {
+                    //not leader
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+            }else if(status=="agree"){
+                idInvitingMember = idAccount;
+            }else {
+                //disagree
+                idInvitingMember = idAccount;
+            }
+
+            let indexDelete = editProject.InvitingMembers.findIndex(e=>e.User.toString()==idInvitingMember);
+            
+            if(status=="agree"){
+                //check exist in inviting member
+                if(indexDelete==-1){
+                    //not exist
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+
+                let resUpdateMember = await updateMember(req.lang,idProject,idInvitingMember,editProject.InvitingMembers[indexDelete].Role,false);
+                if(resUpdateMember.status==Controller.ResStatus.Fail){
+                    res.json(Controller.Fail(resUpdateMember.error));
+                }
+            }
+
+            if(indexDelete!=-1){
+                editProject.InvitingMembers.splice(index,1);
+                //update
+                let updateFields = {$set:{
+                    InvitingMembers:editProject.InvitingMembers
+                }};
+
+                resAction = await ProjectModel.updateProject(idProject, updateFields,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));   
+                    return;
+                }
+            }
+            
+            res.json(Controller.Success({ isComplete:true }));  
+            return;
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //http get, authen
+    GetInvitingMembersOfProject: async (req, res) => { 
+        try {
+            let idProject = req.query.id;
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let queryProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            
+            queryProject = await queryProject.populate("InvitingMembers.User");
+            let resInvitingMembers =[];
+           
+            queryProject.InvitingMembers.forEach(member => {
+                resInvitingMembers.push(
+                    new ProjectResponse.InvitingMember(
+                        member.User._id,
+                        member.User.Name,
+                        member.User.Avatar,
+                        member.Role,
+                        member.Time
+                    )
+                );
+            });
+            
+            res.json(Controller.Success({invitingMembers:resInvitingMembers}));  
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
+    //http get, authen
+    GetInvitingMembersOfUser: async (req, res) => { 
+        try {
+            let idAccount = req.user.id;
+
+            let resAction = await ProjectModel.getProjectsWithUserAsInvitingMember(idAccount,req.lang);
+            let queryProjects = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            
+            let resInvitingProjects =[];
+            queryProjects.forEach(pro=>{
+                let ind = pro.InvitingMembers.findIndex(e=>e.User.toString()==idAccount);
+                if(ind==-1){
+                    res.json(Controller.Fail(Message(req.lang,"system_error"))); 
+                    return;
+                }
+                resInvitingProjects.push(
+                    new ProjectResponse.InvitingProject(
+                        pro._id,
+                        pro.Name,
+                        pro.Avatar,
+                        pro.InvitingMembers[ind].Role,
+                        pro.InvitingMembers[ind].Time
+                    )
+                );
+            });
+            
+            res.json(Controller.Success({invitingProjects:resInvitingProjects}));  
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
 
     //http get, authen
     GetCategoryKeywordsOfProject: async (req, res) => { 
@@ -1017,7 +1250,351 @@ var ProjectController = {
         }  
     },
 
-    
+    //http post, authen
+    UploadResource: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+            let idProject = req.body.id;
+            let type = req.body.type;
+            let alt = req.body.alt;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (type != "image" || type != "video") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let altValid = ProjectModel.isValidResourceAlt(alt, language);
+            if (!altValid.isValid) {
+                res.json(Controller.Fail(altValid.error));
+                return;
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let editProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            if (editProject.Leader.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return; 
+            }
+
+            let fullPath = Path.join(__dirname,'..','public','images','projects',idProject);
+            if(!Controller.isExistPath(fullPath)){
+                Controller.createDirectory(fullPath);
+            }
+
+            let updateFields;
+            let newResource;
+
+            if(type=="image"){
+                //must upload image
+                if (!req.files || !req.files.image) {
+                    res.json(Controller.Fail(Message(req.lang,'must_upload_file_image')));
+                    return; 
+                } else if (req.files.image.size > Controller.Constant.PROJECT_IMAGE_RESOURCE_LIMIT_KB*1024) {
+                    res.json(Controller.Fail(Message(req.lang,'image_file_limit_size_kb').replace('{{size}}',Controller.Constant.PROJECT_IMAGE_RESOURCE_LIMIT_KB )));
+                    return; 
+                } else {
+                    let image = req.files.image;
+                    console.log(image.mimetype)
+                    
+                    if (!image.mimetype.startsWith('image/')) {
+                        res.json(Controller.Fail(Message(req.lang,'file_only_image')));
+                        return; 
+                    } else {
+                        
+                        let filePath = idProject +"."+ image.name;
+                        image.mv(Path.join(fullPath, filePath));
+                        filePath=Path.join(idProject,filePath).toString();
+                        console.log("file path:"+filePath);
+
+                        //update
+                        newResource = new ProjectModel.ProjectResource(filePath,alt);
+                        editProject.Images.push(newResource);
+                        updateFields = {$set:{Images:editProject.Images}};
+                    }
+                }
+            }else{
+                //must upload video
+                if (!req.files || !req.files.video) {
+                    res.json(Controller.Fail(Message(req.lang,'must_upload_file_video')));
+                    return; 
+                } else if (req.files.video.size > Controller.Constant.PROJECT_VIDEO_RESOURCE_LIMIT_KB*1024) {
+                    res.json(Controller.Fail(Message(req.lang,'video_file_limit_size_kb').replace('{{size}}',Controller.Constant.PROJECT_VIDEO_RESOURCE_LIMIT_KB )));
+                    return; 
+                } else {
+                    let video = req.files.video;
+                    console.log(video.mimetype)
+                    
+                    if (!video.mimetype.startsWith('video/')) {
+                        res.json(Controller.Fail(Message(req.lang,'file_only_video')));
+                        return; 
+                    } else {
+                        
+                        let filePath = idProject +"."+ video.name;
+                        video.mv(Path.join(fullPath, filePath));
+                        filePath=Path.join(idProject,filePath).toString();
+                        console.log("file path:"+filePath);
+
+                        //update
+                        newResource = new ProjectModel.ProjectResource(filePath,alt);
+                        editProject.Videos.push(newResource);
+                        updateFields = {$set:{Videos:editProject.Videos}};
+                    }
+                }
+            }
+            
+            resAction = await ProjectModel.updateProject(idProject, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            } else {
+                res.json(Controller.Success({ path: newResource.Path, alt: newResource.Alt }));  
+                return;
+            }
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //http post, authen
+    DeleteResource: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+            let idProject = req.body.id;
+            let type = req.body.type;
+            let path = req.body.path;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (path == undefined || path == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (type != "image" || type != "video") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let editProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            if (editProject.Leader.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return; 
+            }
+
+            let fullPath = Path.join(__dirname,'..','public','images','projects');
+            
+            let updateFields;
+
+            if(type=="image"){
+                let indexDelete = editProject.Images.findIndex(e=>e.Path==path);
+                if(indexDelete==-1){
+                    res.json(Controller.Fail(Message(req.lang,'resource_not_exist')));
+                    return; 
+                }
+                editProject.Images.splice(indexDelete,1);
+                updateFields = {$set:{Images:editProject.Images}};
+            }else{
+                let indexDelete = editProject.Videos.findIndex(e=>e.Path==path);
+                if(indexDelete==-1){
+                    res.json(Controller.Fail(Message(req.lang,'resource_not_exist')));
+                    return; 
+                }
+                editProject.Videos.splice(indexDelete,1);
+                updateFields = {$set:{Videos:editProject.Videos}};
+            }
+            //delete old file
+            if (Controller.isExistPath(Path.join(fullPath, path))) {
+                if (!Controller.deleteFile(Path.join(fullPath, path))) {
+                    res.json(Controller.Fail(Message(req.lang,'error_with_delete_file')));
+                    return; 
+                }
+            }
+            
+            resAction = await ProjectModel.updateProject(idProject, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            } else {
+                res.json(Controller.Success({ path: newResource.Path, alt: newResource.Alt }));  
+                return;
+            }
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+
+    //http post, authen
+    UpdateNegativeReports: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+
+            let idProject = req.body.id;
+            let negativeReportKeywordsId = JSON.parse(req.body.keywords)||[];
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            if (!Controller.isStringArray(negativeReportKeywordsId)) {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let editProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            //get all keywords
+            resAction = await NegativeReportKeywordModel.getAllNegativeReportKeywordsByUser(req.lang);
+            let allKeywords = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            
+            let keywordsUpdate = [];
+            negativeReportKeywordsId.forEach(id => {
+                let ind = allKeywords.findIndex(e=>e._id.toString()==id);
+                if(ind!=-1){
+                    keywordsUpdate.push(id);
+                }
+            });
+
+            let userReportIndex = editProject.NegativeReports.findIndex(e=>e.User.toString()==idAccount);
+            if(userReportIndex==-1){
+                //add
+                let userNegativeReports = new ProjectModel.ProjectNegativeReport();
+                userNegativeReports.User = idAccount;
+                userNegativeReports.NegativeReports = keywordsUpdate;
+                userNegativeReports.Time = Date.now();
+                editProject.NegativeReports.push(userNegativeReports);
+            }else{
+                if(keywordsUpdate.length==0){
+                    //delete
+                    editProject.NegativeReports.splice(userReportIndex,1);
+                }else{
+                    //change
+                    editProject.NegativeReports[userReportIndex].NegativeReports = keywordsUpdate;
+                }
+            }
+            //update
+            let updateFields = {$set:{
+                NegativeReports:editProject.NegativeReports
+            }};
+
+            resAction = await ProjectModel.updateProject(idProject, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            } else {
+                res.json(Controller.Success({ isComplete:true }));  
+                return;
+            }
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //http get, authen
+    GetMyNegativeReports: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+
+            let idProject = req.body.id;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let queryProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            let resNegativeReportsId = [];
+            let index = queryProject.NegativeReports.findIndex(e=>e.User.toString()==idAccount);
+            if(index!=-1){
+                queryProject = await queryProject.populate("NegativeReports.NegativeReports");
+                resNegativeReportsId=queryProject.NegativeReports[index].NegativeReports.filter(e=>e.IsActive==true).map(e=>e._id);
+            }
+            
+            res.json(Controller.Success({ myNegativeReports:resNegativeReportsId }));  
+            return;
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //http get, authen
+    GetNegativeReports: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+
+            let idProject = req.body.id;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let queryProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            let resNegativeReportsId = [];
+            
+            queryProject = await queryProject.populate("NegativeReports.NegativeReports");
+            queryProject.NegativeReports.forEach(nrs=>{
+                nrs.NegativeReports.forEach(nr=>{
+                    if(resNegativeReportsId.indexOf(nr._id.toString())==-1){
+                        resNegativeReportsId.push(nr._id.toString());
+                    }
+                });
+            });
+            
+            res.json(Controller.Success({ negativeReports:resNegativeReportsId }));  
+            return;
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+
+
 }  
 const updateMember = ProjectController.updateMember;
 module.exports = ProjectController;

@@ -24,12 +24,16 @@
     ,"account_is_not_user":"Account is not a user."
     ,"datetime_is_unvalid":"DateTime is unvalid."
     ,"error_with_save_file":"Error with saving file."
+    ,"error_with_delete_file":"Error with deleting file."
     ,"file_only_image":"Only image files are allowed."
+    ,"file_only_video":"Only video files are allowed."
     ,"file_only_pdf":"Only PDF file are allowed."
     ,"must_upload_file_pdf":"File PDF must be uploaded."
     ,"pdf_file_limit_size_kb":"File PDF size is limited {{size}} KB."
     ,"must_upload_file_image":"File image must be uploaded."
+    ,"must_upload_file_video":"File video must be uploaded."
     ,"image_file_limit_size_kb":"File image size is limited {{size}} KB."
+    ,"video_file_limit_size_kb":"File video size is limited {{size}} KB."
     
     ,"verify_email_title_email_template":"About verifying your Email."
     ,"verify_email_content_email_template":"Hello {{name}}!\nTo verify this email please visit the link below:\n{{verify_url}}\n(Token is valid for {{token_time}} minutes)\n From Startup Map Server\n This is an automated email, please do not respond ."
@@ -95,5 +99,6 @@
     ,"project_tag_constraint":"Minimum tag length 1 and maximum {{length}} characters. Has not to contain whitespace."
     ,"project_tag_number_constraint":"Maximum tag number is {{max}}."
     ,"project_vote_star_constraint":"Maxim vote star is {{max}}"
+    ,"resource_not_exist":"Resource not exist."
     
 }

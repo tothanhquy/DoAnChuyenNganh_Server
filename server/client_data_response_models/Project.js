@@ -28,6 +28,11 @@ class ProjectListItem{
     }
 }
 module.exports.ProjectListItem = ProjectListItem;
+module.exports.MyProjectsAndRequest = class{
+    projects=[];
+    invitingRequestNumber=0;
+    constructor(){}
+}
 
 module.exports.MemberNow = class {
     id;
@@ -41,6 +46,34 @@ module.exports.MemberNow = class {
         this.avatar=avatar;
         this.role=role;
         this.isLeader=isLeader;
+    }
+}
+module.exports.InvitingMember = class {
+    id;
+    name;
+    avatar;
+    role;
+    time;
+    constructor(id,name,avatar,role,time) {
+        this.id=id;
+        this.name=name;
+        this.avatar=avatar;
+        this.role=role;
+        this.time=time;
+    }
+}
+module.exports.InvitingProject = class {
+    id;
+    name;
+    avatar;
+    role;
+    time;
+    constructor(id,name,avatar,role,time) {
+        this.id=id;
+        this.name=name;
+        this.avatar=avatar;
+        this.role=role;
+        this.time=time;
     }
 }
 module.exports.MemberHistory = class {
@@ -87,6 +120,7 @@ class ProjectDetails{
     description;
     relationship;
     members=[];
+    invitingMembersNumber=0;
     categoryKeywords=[];
     tags=[];
     followsNumber=0;
