@@ -124,7 +124,7 @@ var ProjectSchema = new mongoose.Schema({
         type:[ProjectMemberHistory],
         default:[]
     },
-    Slogon: {
+    Slogan: {
         type:String,
         default:""
     },  
@@ -290,11 +290,11 @@ var isValidName = module.exports.isValidName = function(name="",languageMessage)
         return ModelValid.Invalid(Message(languageMessage,"project_name_constraint").replace('{{length}}', MAXIMUM_NAME_LENGTH));
     }
 }
-var isValidSlogon = module.exports.isValidSlogon = function(slogon,languageMessage) {
-    if (slogon.length <= MAXIMUM_SLOGON_LENGTH) {
+var isValidSlogan = module.exports.isValidSlogan = function(slogan,languageMessage) {
+    if (slogan.length <= MAXIMUM_SLOGON_LENGTH) {
         return ModelValid.Valid();
     } else {
-        return ModelValid.Invalid(Message(languageMessage,"project_slogon_constraint").replace('{{length}}', MAXIMUM_SLOGON_LENGTH));
+        return ModelValid.Invalid(Message(languageMessage,"project_slogan_constraint").replace('{{length}}', MAXIMUM_SLOGON_LENGTH));
     }
 }
 var isValidDescription = module.exports.isValidDescription = function(description,languageMessage) {

@@ -231,7 +231,7 @@ var ProjectController = {
             project.leaderId = queryProject.Leader._id;
             project.leaderName = queryProject.Leader.Name;
             project.leaderAvatar = queryProject.Leader.Avatar;
-            project.slogon = queryProject.Slogon;
+            project.slogan = queryProject.Slogan;
             project.description = queryProject.Description;
             
             //get member
@@ -286,7 +286,7 @@ var ProjectController = {
             project.followsNumber=queryProject.UserFollows.length;
             project.imagesNumber=queryProject.Images.length;
             project.videosNumber=queryProject.Videos.length;
-            project.resportsNumber=queryProject.NegativeReports.length;
+            project.reportsNumber=queryProject.NegativeReports.length;
 
             let totalStars=0;
             project.isFollow=false;
@@ -340,10 +340,10 @@ var ProjectController = {
                 return;
             }
 
-            editProject.Slogon = req.body.slogon;
-            let slogonValid = ProjectModel.isValidSlogon(editProject.Slogon, req.lang);
-            if (!slogonValid.isValid) {
-                res.json(Controller.Fail(slogonValid.error));
+            editProject.Slogan = req.body.slogan;
+            let sloganValid = ProjectModel.isValidSlogan(editProject.Slogan, req.lang);
+            if (!sloganValid.isValid) {
+                res.json(Controller.Fail(sloganValid.error));
                 return;
             }
 
@@ -357,7 +357,7 @@ var ProjectController = {
             //update
             let updateFields = {$set:{
                 Name:editProject.Name,
-                Slogon:editProject.Slogon,
+                Slogan:editProject.Slogan,
                 Description:editProject.Description,
             }};
 
@@ -403,7 +403,7 @@ var ProjectController = {
             
             let editBasicInfo = new ProjectResponse.EditBasicInfo();
             editBasicInfo.name = queryProject.Name;
-            editBasicInfo.slogon = queryProject.Slogon;
+            editBasicInfo.slogan = queryProject.Slogan;
             editBasicInfo.description = queryProject.Description;
 
             res.json(Controller.Success({ editBasicInfo:editBasicInfo }));  
@@ -1555,11 +1555,9 @@ var ProjectController = {
             res.json(Controller.Fail(Message(req.lang, "system_error")));
         }  
     },
-    //http get, authen
+    //http get
     GetNegativeReports: async (req,res) => {
         try {
-            let idAccount = req.user.id;
-
             let idProject = req.body.id;
 
             if (idProject == undefined || idProject == "") {

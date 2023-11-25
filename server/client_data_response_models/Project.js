@@ -116,7 +116,7 @@ class ProjectDetails{
     leaderId;
     leaderName;
     leaderAvatar;
-    slogon;
+    slogan;
     description;
     relationship;
     members=[];
@@ -128,7 +128,7 @@ class ProjectDetails{
     imagesNumber=0;
     videosNumber=0;
     voteStar=0;
-    resportsNumber=0;
+    reportsNumber=0;
     constructor(
         projectId,
         projectName,
@@ -136,7 +136,7 @@ class ProjectDetails{
         leaderId,
         leaderName,
         leaderAvatar,
-        slogon,
+        slogan,
         description,
         relationship
     ) {
@@ -146,7 +146,7 @@ class ProjectDetails{
         this.leaderId=leaderId;
         this.leaderName=leaderName;
         this.leaderAvatar=leaderAvatar;
-        this.slogon=slogon;
+        this.slogan=slogan;
         this.description=description;
         this.relationship=relationship;
     }
@@ -155,15 +155,15 @@ class ProjectDetails{
 module.exports.ProjectDetails = ProjectDetails;
 class ProjectEditBasicInfo{
     name;
-    slogon;
+    slogan;
     description;
     constructor(
         name,
-        slogon,
+        slogan,
         description
     ) {
         this.name=name;
-        this.slogon=slogon;
+        this.slogan=slogan;
         this.description=description;
     }
     constructor(){}
