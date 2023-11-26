@@ -180,3 +180,19 @@ module.exports.MembersList = class{
     isLeader=false;
     constructor(){}
 }
+module.exports.GeneralNegativeReport = class {
+    id;
+    number;
+    constructor(id,number=1) {
+        this.id=id;
+        this.number=number;
+    }
+    constructor(){}
+}
+module.exports.GeneralNegativeReports = class {
+    reports;
+    constructor(reports) {
+        this.reports=reports;
+    }
+    constructor(){}
+}

@@ -2,6 +2,7 @@ const Message = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
 var CategoryKeywordModel = require('../models/CategoryKeywordModel');  
 var Controller = require('./Controller');
+const ProjectResponse = require("../client_data_response_models/Project");
 
 //containt the function with business logics  
 var CategoryKeywordController = { 
@@ -15,8 +16,9 @@ var CategoryKeywordController = {
                 return;
             }
             let items = resAction.data.map(a=> ({id:a._id,name:a.Name})) || [];
-            
-            res.json(Controller.Success({ items:items }));  
+            let resObject = new  ProjectResponse.CategoryKeywordList();
+            resObject.keywords = items;
+            res.json(Controller.Success(resObject));  
         }  
         catch (error) {  
             res.json(Controller.Fail(Message(req.lang, "system_error")));  

@@ -395,7 +395,7 @@ var ProjectController = {
                 return;
             }
 
-            if (editProject.Leader.toString() != idAccount) {
+            if (queryProject.Leader.toString() != idAccount) {
                 //not leader
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return; 
@@ -406,7 +406,7 @@ var ProjectController = {
             editBasicInfo.slogan = queryProject.Slogan;
             editBasicInfo.description = queryProject.Description;
 
-            res.json(Controller.Success({ editBasicInfo:editBasicInfo }));  
+            res.json(Controller.Success(editBasicInfo ));  
             return;
         }  
         catch (error) {  
@@ -415,6 +415,40 @@ var ProjectController = {
         }  
     },
 
+    //http get, authen
+    GetTags: async (req,res) => {
+        try {
+            let idAccount = req.user.id;
+
+            let idProject = req.body.id;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let editProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            if (editProject.Leader.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return; 
+            }
+            
+            let tags = editProject.Tags;
+            res.json(Controller.Success({ tags:tags }));  
+            return;
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
     //http post, authen
     EditTags: async (req,res) => {
         try {
@@ -432,6 +466,7 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
+            tags = tags.map(e=>Controller.toNonAccentVietnamese(e).toLowerCase()).filter(e=>e.length!=0);
 
             tags.forEach(e=>{
                 let tagValid = ProjectModel.isValidTag(e, req.lang);
@@ -472,7 +507,7 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
-                res.json(Controller.Success({ isComplete:true }));  
+                res.json(Controller.Success({ newTags: tags}));  
                 return;
             }
             
@@ -484,7 +519,7 @@ var ProjectController = {
     },
 
     //http post, authen
-    ToogleFollow: async (req,res) => {
+    ToggleFollow: async (req,res) => {
         try {
             let idAccount = req.user.id;
 
@@ -503,23 +538,28 @@ var ProjectController = {
             }
             
             let indexFollow = editProject.UserFollows.findIndex(e=>e.toString()==idAccount);
+            
+            let resOj = {totalFollows:0,isFollow:false};
             if(indexFollow!=-1){
                 //unfollow
                 editProject.UserFollows.splice(indexFollow,1);
+                resOj.isFollow=false;
             }else{
                 editProject.UserFollows.push(idAccount);
+                resOj.isFollow=true;
             }
             //update
             let updateFields = {$set:{
                 UserFollows:editProject.UserFollows
             }};
+            resOj.totalFollows = editProject.UserFollows.length;
 
             resAction = await ProjectModel.updateProject(idProject, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
-                res.json(Controller.Success({ isComplete:true }));  
+                res.json(Controller.Success(resOj));  
                 return;
             }
             
@@ -709,13 +749,18 @@ var ProjectController = {
                 //is leader
                 let memberExistIndex = editProject.Members.findIndex(e=>e.toString()==idNewLeader);
 
-                if (idAccount == idNewLeader||memberExistIndex==-1) {
+                if (editProject.Members.length!=1&&(idAccount == idNewLeader||memberExistIndex==-1)) {
                     res.json(Controller.Fail(Message(req.lang, 'new_leader_unvalid')));
                     return; 
                 }
 
                 //update new leader
-                editProject.Leader = idNewLeader;
+                if(editProject.Members.length==1){
+                    //project not leader
+                    editProject.Leader=null
+                }else{
+                    editProject.Leader = idNewLeader;
+                }
             }
             //delate member
             let resUpdateMember = await updateMember(req.lang,idProject,idAccount,"",true);
@@ -921,6 +966,7 @@ var ProjectController = {
             res.json(Controller.Fail(Message(req.lang, "system_error")));
         }  
     },
+
     //http post, authen
     InviteNewMember: async (req,res) => {
         try {
@@ -1080,10 +1126,20 @@ var ProjectController = {
         try {
             let idProject = req.query.id;
 
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
             let resAction = await ProjectModel.getDataById(idProject,req.lang);
             let queryProject = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            if (queryProject.Leader.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
             }
             
@@ -1167,6 +1223,12 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
+
+            if (queryProject.Leader._id.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                return;
+            }
             
             //get category keyword
             let categoryKeywords = [];
@@ -1180,7 +1242,7 @@ var ProjectController = {
                 );
             });
             resObject.keywords = categoryKeywords;
-            resObject.isLeader = queryProject.Leader.toString()==idAccount;
+            resObject.isLeader = true;
             
             res.json(Controller.Success(resObject));  
         }  
@@ -1208,9 +1270,14 @@ var ProjectController = {
             }
 
             let resAction = await ProjectModel.getDataById(idProject,req.lang);
-            // let editProject = resAction.data;
+            let editProject = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            if (editProject.Leader.toString() != idAccount) {
+                //not leader
+                res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return;
             }
 
@@ -1540,14 +1607,14 @@ var ProjectController = {
                 return;
             }
 
-            let resNegativeReportsId = [];
+            let resNegativeReports = new ProjectResponse.GeneralNegativeReports();
             let index = queryProject.NegativeReports.findIndex(e=>e.User.toString()==idAccount);
             if(index!=-1){
                 queryProject = await queryProject.populate("NegativeReports.NegativeReports");
-                resNegativeReportsId=queryProject.NegativeReports[index].NegativeReports.filter(e=>e.IsActive==true).map(e=>e._id);
+                resNegativeReports.reports=queryProject.NegativeReports[index].NegativeReports.filter(e=>e.IsActive==true).map(e=>new ProjectResponse.GeneralNegativeReport(e._id,1));
             }
             
-            res.json(Controller.Success({ myNegativeReports:resNegativeReportsId }));  
+            res.json(Controller.Success(resNegativeReports));  
             return;
         }  
         catch (error) {  
@@ -1556,7 +1623,7 @@ var ProjectController = {
         }  
     },
     //http get
-    GetNegativeReports: async (req,res) => {
+    GetGeneralNegativeReports: async (req,res) => {
         try {
             let idProject = req.body.id;
 
@@ -1572,18 +1639,23 @@ var ProjectController = {
                 return;
             }
 
-            let resNegativeReportsId = [];
+            let resNegativeReports = new ProjectResponse.NegativeReports();
             
             queryProject = await queryProject.populate("NegativeReports.NegativeReports");
             queryProject.NegativeReports.forEach(nrs=>{
                 nrs.NegativeReports.forEach(nr=>{
-                    if(resNegativeReportsId.indexOf(nr._id.toString())==-1){
-                        resNegativeReportsId.push(nr._id.toString());
+                    let existInd = resNegativeReports.reports.findIndex(e=>e.id==nr._id.toString());
+                    if(existInd==-1){
+                        //add
+                        resNegativeReports.reports.push(new ProjectResponse.GeneralNegativeReport(nr._id.toString(),1));
+                    }else{
+                        //plus
+                        resNegativeReports.reports[existInd].number++;
                     }
                 });
             });
             
-            res.json(Controller.Success({ negativeReports:resNegativeReportsId }));  
+            res.json(Controller.Success(resNegativeReports));  
             return;
         }  
         catch (error) {  

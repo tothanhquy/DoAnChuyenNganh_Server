@@ -16,7 +16,7 @@ var NegativeReportKeywordController = {
             }
             let items = resAction.data.map(a=> ({id:a._id,name:a.Name})) || [];
             
-            res.json(Controller.Success({ items:items }));  
+            res.json(Controller.Success({ keywords:items }));  
         }  
         catch (error) {  
             res.json(Controller.Fail(Message(req.lang, "system_error")));  

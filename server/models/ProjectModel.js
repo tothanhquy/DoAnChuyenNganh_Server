@@ -109,7 +109,6 @@ var ProjectSchema = new mongoose.Schema({
     },
     Leader: {
         type: mongoose.Schema.Types.ObjectId,
-        required:true,
         ref: 'Accounts' 
     },
     Members: {
@@ -333,7 +332,7 @@ var isValidTagNumber = module.exports.isValidTagNumber = function(tagNumber,lang
     }
 }
 var isValidVoteStar = module.exports.isValidVoteStar = function(star,languageMessage) {
-    if (star <= MAXIMUM_VOTE_STAR) {
+    if (star > 0&&star <= MAXIMUM_VOTE_STAR) {
         return ModelValid.Valid();
     } else {
         return ModelValid.Invalid(Message(languageMessage,"project_vote_star_constraint").replace('{{max}}',MAXIMUM_VOTE_STAR ));
