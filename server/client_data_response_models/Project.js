@@ -196,3 +196,21 @@ module.exports.GeneralNegativeReports = class {
     }
     constructor(){}
 }
+module.exports.Resource = class {
+    path;
+    alt;
+    constructor(path,alt) {
+        this.path=path;
+        this.alt=alt;
+    }
+    constructor(){}
+}
+module.exports.Resources = class {
+    resources=[];
+    isLeader=false;
+    constructor(resources=[],isLeader=false) {
+        this.resources=resources;
+        this.isLeader=isLeader;
+    }
+    constructor(){}
+}

@@ -507,7 +507,7 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
-                res.json(Controller.Success({ newTags: tags}));  
+                res.json(Controller.Success({ tags: tags}));  
                 return;
             }
             
@@ -852,6 +852,8 @@ var ProjectController = {
             //get members
             let members = [];
 
+            queryProject = await queryProject.populate("MembersHistory.User");
+
             queryProject.MembersHistory.forEach(member => {
                 members.push(
                     new ProjectResponse.MemberHistory(
@@ -939,6 +941,11 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
+            let roleValid = ProjectModel.isValidMemberRole(role, language);
+            if (!roleValid.isValid) {
+                res.json(Controller.Fail(roleValid.error));
+                return;
+            }
 
             let resAction = await ProjectModel.getDataById(idProject,req.lang);
             let editProject = resAction.data;
@@ -986,7 +993,7 @@ var ProjectController = {
             }
             let roleValid = ProjectModel.isValidMemberRole(role, language);
             if (!roleValid.isValid) {
-                res.json(Controller.FailroleValid.error);
+                res.json(Controller.Fail(roleValid.error));
                 return;
             }
 
@@ -1329,7 +1336,7 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            if (type != "image" || type != "video") {
+            if (type != "image" && type != "video") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
@@ -1449,7 +1456,7 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            if (type != "image" || type != "video") {
+            if (type != "image" && type != "video") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
@@ -1504,6 +1511,48 @@ var ProjectController = {
                 res.json(Controller.Success({ path: newResource.Path, alt: newResource.Alt }));  
                 return;
             }
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang, "system_error")));
+        }  
+    },
+    //http get
+    GetResources: async (req,res) => {
+        try {
+            let idProject = req.body.id;
+            let type = req.body.type;
+
+            if (idProject == undefined || idProject == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (type != "image" && type != "video") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let queryProject = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            let resResources = new ProjectResponse.Resources();
+            let account = await Auth.CheckAndGetAuthenUser(req);
+            if (account === false) {
+            } else if (queryProject.Leader.toString() == account.id.toString()) {
+                resResources.isLeader=true;
+            }
+            if(type=="image"){  
+                resResources.resources = queryProject.Images.map(e=>new ProjectResponse.Resource(e.Path,e.Alt));
+            }else{
+                resResources.resources = queryProject.Videos.map(e=>new ProjectResponse.Resource(e.Path,e.Alt));
+            }
+            
+            res.json(Controller.Success(resResources));  
+            return;
         }  
         catch (error) {  
             console.log(error);
