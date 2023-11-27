@@ -1348,7 +1348,7 @@ var ProjectController = {
                 return; 
             }
 
-            let altValid = ProjectModel.isValidResourceAlt(alt, language);
+            let altValid = ProjectModel.isValidResourceAlt(alt, req.lang);
             if (!altValid.isValid) {
                 res.json(Controller.Fail(altValid.error));
                 return;
@@ -1374,6 +1374,7 @@ var ProjectController = {
 
             let updateFields;
             let newResource;
+            let saveTime = Date.now();
 
             if(type=="image"){
                 //must upload image
@@ -1392,7 +1393,7 @@ var ProjectController = {
                         return; 
                     } else {
                         
-                        let filePath = idProject +"."+ image.name;
+                        let filePath = idProject+"."+saveTime+"."+ image.name;
                         image.mv(Path.join(fullPath, filePath));
                         filePath=Path.join(idProject,filePath).toString();
                         console.log("file path:"+filePath);
@@ -1420,7 +1421,7 @@ var ProjectController = {
                         return; 
                     } else {
                         
-                        let filePath = idProject +"."+ video.name;
+                        let filePath = idProject+"."+saveTime +"."+ video.name;
                         video.mv(Path.join(fullPath, filePath));
                         filePath=Path.join(idProject,filePath).toString();
                         console.log("file path:"+filePath);
@@ -1515,7 +1516,7 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
-                res.json(Controller.Success({ path: newResource.Path, alt: newResource.Alt }));  
+                res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
         }  

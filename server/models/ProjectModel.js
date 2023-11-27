@@ -80,6 +80,10 @@ const ProjectResource = new mongoose.Schema({
 const ProjectResourceObject = class{
     Path="";
     Alt="";
+    constructor(path,alt){
+        this.Path=path;
+        this.Alt=alt;
+    }
 };
 const ProjectNegativeReport = new mongoose.Schema({
     User:{
