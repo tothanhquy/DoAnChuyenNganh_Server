@@ -31,7 +31,7 @@ module.exports.ProjectListItem = ProjectListItem;
 module.exports.MyProjectsAndRequest = class{
     projects=[];
     invitingRequestNumber=0;
-    constructor(){}
+    
 }
 
 module.exports.MemberNow = class {
@@ -107,7 +107,6 @@ module.exports.CategoryKeywordList = class {
         this.keywords=keywords;
         this.isLeader=isLeader;
     }
-    constructor(){}
 }
 class ProjectDetails{
     projectId;
@@ -150,7 +149,7 @@ class ProjectDetails{
         this.description=description;
         this.relationship=relationship;
     }
-    constructor(){}
+    
 }
 module.exports.ProjectDetails = ProjectDetails;
 class ProjectEditBasicInfo{
@@ -166,7 +165,7 @@ class ProjectEditBasicInfo{
         this.slogan=slogan;
         this.description=description;
     }
-    constructor(){}
+    
 }
 module.exports.ProjectEditBasicInfo = ProjectEditBasicInfo;
 module.exports.Relationship = {
@@ -178,7 +177,7 @@ module.exports.Relationship = {
 module.exports.MembersList = class{
     members=[];
     isLeader=false;
-    constructor(){}
+    
 }
 module.exports.GeneralNegativeReport = class {
     id;
@@ -187,14 +186,14 @@ module.exports.GeneralNegativeReport = class {
         this.id=id;
         this.number=number;
     }
-    constructor(){}
+    
 }
 module.exports.GeneralNegativeReports = class {
-    reports;
-    constructor(reports) {
+    reports=[];
+    constructor(reports=[]) {
         this.reports=reports;
     }
-    constructor(){}
+    
 }
 module.exports.Resource = class {
     path;
@@ -203,7 +202,7 @@ module.exports.Resource = class {
         this.path=path;
         this.alt=alt;
     }
-    constructor(){}
+    
 }
 module.exports.Resources = class {
     resources=[];
@@ -212,5 +211,5 @@ module.exports.Resources = class {
         this.resources=resources;
         this.isLeader=isLeader;
     }
-    constructor(){}
+    
 }

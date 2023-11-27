@@ -27,6 +27,7 @@ router.get('/GetInvitingMembersOfProject',Auth.AuthenUser,ProjectController.GetI
 router.get('/GetInvitingMembersOfUser',Auth.AuthenUser,ProjectController.GetInvitingMembersOfUser);
 router.get('/GetCategoryKeywordsOfProject',Auth.AuthenUser,ProjectController.GetCategoryKeywordsOfProject);
 router.post('/UpdateCategoryKeywordsOfProject',Auth.AuthenUser,ProjectController.UpdateCategoryKeywordsOfProject);
+router.get('/GetResources',ProjectController.GetResources);
 router.post('/UploadResource',Auth.AuthenUser,ProjectController.UploadResource);
 router.post('/DeleteResource',Auth.AuthenUser,ProjectController.DeleteResource);
 router.post('/UpdateNegativeReports',Auth.AuthenUser,ProjectController.UpdateNegativeReports);

@@ -78,7 +78,7 @@ var ProjectController = {
                         queryProject.Leader._id.toString()==idAccount
                     )
                     //
-                    res.json(Controller.Success({ newItem: newProjectRes }));
+                    res.json(Controller.Success({ newProject: newProjectRes }));
                     return;
                 }
             }
@@ -196,9 +196,7 @@ var ProjectController = {
                 return;
             }
             resObject.invitingRequestNumber=resAction.data.length;
-
             res.json(Controller.Success(resObject));  
-        
         }  
         catch (error) {  
             console.log(error);
@@ -288,14 +286,15 @@ var ProjectController = {
             project.videosNumber=queryProject.Videos.length;
             project.reportsNumber=queryProject.NegativeReports.length;
 
-            let totalStars=0;
+            
             project.isFollow=false;
+            
+            if(project.relationship.indexOf(ProjectResponse.Relationship.UserLogin)!=-1)
+            project.isFollow = queryProject.UserFollows.findIndex(e=>e.toString()==account.id.toString())!=-1
+            
+            let totalStars=0;
             queryProject.VoteStars.forEach(e=>{
                 totalStars+=e.Star;
-                if(project.relationship==ProjectResponse.Relationship.UserLogin&&
-                    e.User.toString()==account.id.toString()){
-                        project.isFollow=true;
-                    }
             });
             project.voteStar=Math.round((totalStars/queryProject.VoteStars.length) * 10) / 10;
 
@@ -381,7 +380,7 @@ var ProjectController = {
         try {
             let idAccount = req.user.id;
 
-            let idProject = req.body.id;
+            let idProject = req.query.id;
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
@@ -401,7 +400,7 @@ var ProjectController = {
                 return; 
             }
             
-            let editBasicInfo = new ProjectResponse.EditBasicInfo();
+            let editBasicInfo = new ProjectResponse.ProjectEditBasicInfo();
             editBasicInfo.name = queryProject.Name;
             editBasicInfo.slogan = queryProject.Slogan;
             editBasicInfo.description = queryProject.Description;
@@ -420,7 +419,7 @@ var ProjectController = {
         try {
             let idAccount = req.user.id;
 
-            let idProject = req.body.id;
+            let idProject = req.query.id;
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
@@ -635,7 +634,7 @@ var ProjectController = {
         try {
             let idAccount = req.user.id;
 
-            let idProject = req.body.id;
+            let idProject = req.query.id;
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
@@ -697,12 +696,15 @@ var ProjectController = {
                     newMemberNow.User = idUser;
                     newMemberNow.Role=role;
                     editProject.Members.push(newMemberNow);
+                }else{
+                    //update role
+                    editProject.Members[indexMember].Role = role;
                 }
             }
             let newMemberHistory = new ProjectModel.ProjectMemberHistory();
             newMemberHistory.User = idUser;
-            newMemberHistory.IsOut=false;
-            newMemberHistory.Time=Data.now();
+            newMemberHistory.IsOut=isOut;
+            newMemberHistory.Time=Date.now();
             newMemberHistory.Role=role;
             editProject.MembersHistory.push(newMemberHistory);
 
@@ -807,12 +809,12 @@ var ProjectController = {
 
             queryProject.Members.forEach(member => {
                 members.push(
-                    new ProjectResponse.Member(
+                    new ProjectResponse.MemberNow(
                         member.User._id,
                         member.User.Name,
                         member.User.Avatar,
                         member.Role,
-                        member._id.toString()==queryProject.Leader.toString()
+                        member.User._id.toString()==queryProject.Leader._id.toString()
                     )
                 );
             });
@@ -823,7 +825,7 @@ var ProjectController = {
             if (account === false) {
                 //guest
             } else {
-                if (queryProject.Leader.toString() == account.id) {
+                if (queryProject.Leader._id.toString() == account.id) {
                     resObject.isLeader = true;
                 }
             }
@@ -873,7 +875,7 @@ var ProjectController = {
             if (account === false) {
                 //guest
             } else {
-                if (queryProject.Leader.toString() == account.id) {
+                if (queryProject.Leader._id.toString() == account.id) {
                     resObject.isLeader = true;
                 }
             }
@@ -941,7 +943,7 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            let roleValid = ProjectModel.isValidMemberRole(role, language);
+            let roleValid = ProjectModel.isValidMemberRole(role, req.lang);
             if (!roleValid.isValid) {
                 res.json(Controller.Fail(roleValid.error));
                 return;
@@ -964,6 +966,7 @@ var ProjectController = {
             let resUpdateMember = await updateMember(req.lang,idProject,idMember,role,false);
             if(resUpdateMember.status==Controller.ResStatus.Fail){
                 res.json(Controller.Fail(resUpdateMember.error));
+                return;
             }
             res.json(Controller.Success({ isComplete:true }));  
             return;
@@ -991,7 +994,7 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
-            let roleValid = ProjectModel.isValidMemberRole(role, language);
+            let roleValid = ProjectModel.isValidMemberRole(role, req.lang);
             if (!roleValid.isValid) {
                 res.json(Controller.Fail(roleValid.error));
                 return;
@@ -1058,10 +1061,12 @@ var ProjectController = {
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
+                console.log(2);
                 return; 
             }
-            if (status != "agree" && status != "disagree" && status != "cencel") {
+            if (status != "agree" && status != "disagree" && status != "cancel") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
+                console.log(1);
                 return; 
             }
 
@@ -1076,6 +1081,7 @@ var ProjectController = {
             if(status=="cancel"){
                 if (idInvitingMember == undefined || idInvitingMember == "") {
                     res.json(Controller.Fail(Message(req.lang, "system_error")));
+                    console.log(3);
                     return; 
                 }
                 if (editProject.Leader.toString() != idAccount) {
@@ -1107,7 +1113,7 @@ var ProjectController = {
             }
 
             if(indexDelete!=-1){
-                editProject.InvitingMembers.splice(index,1);
+                editProject.InvitingMembers.splice(indexDelete,1);
                 //update
                 let updateFields = {$set:{
                     InvitingMembers:editProject.InvitingMembers
@@ -1131,6 +1137,7 @@ var ProjectController = {
     //http get, authen
     GetInvitingMembersOfProject: async (req, res) => { 
         try {
+            let idAccount = req.user.id;
             let idProject = req.query.id;
 
             if (idProject == undefined || idProject == "") {
@@ -1263,7 +1270,7 @@ var ProjectController = {
         try {
             let idAccount = req.user.id;
 
-            let idProject = req.query.id;
+            let idProject = req.body.id;
             let categoryKeywordsId = JSON.parse(req.body.keywords)||[];
 
             if (idProject == undefined || idProject == "") {
@@ -1520,8 +1527,8 @@ var ProjectController = {
     //http get
     GetResources: async (req,res) => {
         try {
-            let idProject = req.body.id;
-            let type = req.body.type;
+            let idProject = req.query.id;
+            let type = req.query.type;
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
@@ -1642,14 +1649,14 @@ var ProjectController = {
         try {
             let idAccount = req.user.id;
 
-            let idProject = req.body.id;
+            let idProject = req.query.id;
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
 
-            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let resAction = await ProjectModel.getDataByIdPopulateNegativeReports(idProject,req.lang);
             let queryProject = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
@@ -1659,10 +1666,10 @@ var ProjectController = {
             let resNegativeReports = new ProjectResponse.GeneralNegativeReports();
             let index = queryProject.NegativeReports.findIndex(e=>e.User.toString()==idAccount);
             if(index!=-1){
-                queryProject = await queryProject.populate("NegativeReports.NegativeReports");
-                resNegativeReports.reports=queryProject.NegativeReports[index].NegativeReports.filter(e=>e.IsActive==true).map(e=>new ProjectResponse.GeneralNegativeReport(e._id,1));
+                // queryProject = await queryProject.populate("NegativeReports.NegativeReports");
+                resNegativeReports.reports=queryProject.NegativeReports[index].NegativeReports.filter(e=>e.IsActive==true).map(e=>new ProjectResponse.GeneralNegativeReport(e._id.toString(),1));
             }
-            
+            console.log(resNegativeReports);
             res.json(Controller.Success(resNegativeReports));  
             return;
         }  
@@ -1674,23 +1681,23 @@ var ProjectController = {
     //http get
     GetGeneralNegativeReports: async (req,res) => {
         try {
-            let idProject = req.body.id;
+            let idProject = req.query.id;
 
             if (idProject == undefined || idProject == "") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
 
-            let resAction = await ProjectModel.getDataById(idProject,req.lang);
+            let resAction = await ProjectModel.getDataByIdPopulateNegativeReports(idProject,req.lang);
             let queryProject = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
 
-            let resNegativeReports = new ProjectResponse.NegativeReports();
+            let resNegativeReports = new ProjectResponse.GeneralNegativeReports();
             
-            queryProject = await queryProject.populate("NegativeReports.NegativeReports");
+            // queryProject = await queryProject.populate("NegativeReports.NegativeReports");
             queryProject.NegativeReports.forEach(nrs=>{
                 nrs.NegativeReports.forEach(nr=>{
                     let existInd = resNegativeReports.reports.findIndex(e=>e.id==nr._id.toString());
@@ -1704,6 +1711,7 @@ var ProjectController = {
                 });
             });
             
+            console.log(resNegativeReports);
             res.json(Controller.Success(resNegativeReports));  
             return;
         }  

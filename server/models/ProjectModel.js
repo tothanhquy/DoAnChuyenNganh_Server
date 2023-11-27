@@ -31,6 +31,12 @@ const ProjectMemberHistory = new mongoose.Schema({
         default:false,
     },
 });
+const ProjectMemberHistoryObject = class{
+    User="";
+    Role="";
+    Time=0;
+    IsOut=false;
+};
 const ProjectMemberNow = new mongoose.Schema({
     User:{
         type: mongoose.Schema.Types.ObjectId,
@@ -42,6 +48,10 @@ const ProjectMemberNow = new mongoose.Schema({
         default:null,
     },
 });
+const ProjectMemberNowObject = class{
+    User="";
+    Role="";
+};
 const ProjectVoteStar = new mongoose.Schema({
     User:{
         type: mongoose.Schema.Types.ObjectId,
@@ -53,6 +63,10 @@ const ProjectVoteStar = new mongoose.Schema({
         default:0,
     },
 });
+const ProjectVoteStarObject = class{
+    User="";
+    Star=0;
+};
 const ProjectResource = new mongoose.Schema({
     Path:{
         type:String,
@@ -63,6 +77,10 @@ const ProjectResource = new mongoose.Schema({
         default:null,
     },
 });
+const ProjectResourceObject = class{
+    Path="";
+    Alt="";
+};
 const ProjectNegativeReport = new mongoose.Schema({
     User:{
         type: mongoose.Schema.Types.ObjectId,
@@ -82,6 +100,11 @@ const ProjectNegativeReport = new mongoose.Schema({
         default:0,
     },
 });
+const ProjectNegativeReportObject = class{
+    User="";
+    NegativeReports=[];
+    Time=0;
+};
 const ProjectInvitingMember = new mongoose.Schema({
     User:{
         type: mongoose.Schema.Types.ObjectId,
@@ -97,6 +120,11 @@ const ProjectInvitingMember = new mongoose.Schema({
         default:0,
     },
 });
+const ProjectInvitingMemberObject = class{
+    User="";
+    Role="";
+    Time=0;
+};
 //specify the fields which we want in our collection(table).  
 var ProjectSchema = new mongoose.Schema({  
     Name: {
@@ -180,12 +208,12 @@ var ProjectSchema = new mongoose.Schema({
  //here we saving our collectionSchema with the name user in database  
  //ProjectModel will contain the instance of the user for manipulating the data.  
 var ProjectModel = module.exports = mongoose.model('Projects',ProjectSchema)  
-module.exports.ProjectMemberHistory = ProjectMemberHistory;
-module.exports.ProjectMemberNow = ProjectMemberNow;
-module.exports.ProjectVoteStar = ProjectVoteStar;
-module.exports.ProjectResource = ProjectResource;
-module.exports.ProjectNegativeReport = ProjectNegativeReport;
-module.exports.ProjectInvitingMember = ProjectInvitingMember;
+module.exports.ProjectMemberHistory = ProjectMemberHistoryObject;
+module.exports.ProjectMemberNow = ProjectMemberNowObject;
+module.exports.ProjectVoteStar = ProjectVoteStarObject;
+module.exports.ProjectResource = ProjectResourceObject;
+module.exports.ProjectNegativeReport = ProjectNegativeReportObject;
+module.exports.ProjectInvitingMember = ProjectInvitingMemberObject;
 module.exports.MAXIMUM_TAG_COUNT = MAXIMUM_TAG_COUNT;
 
 module.exports.getDataById = async (id,languageMessage)=>{
@@ -229,6 +257,20 @@ module.exports.getProjectsWithUserAsInvitingMember = async (idUser,languageMessa
 module.exports.getDataByIdPopulateBasic = async (id,languageMessage)=>{
     try {
         let resAction = await ProjectModel.findOne({ _id: id }).populate("Leader").populate("Members.User").populate("CategoryKeyWords");
+        if (resAction == null) {
+            return ModelResponse.Fail(Message(languageMessage,"project_not_exist")); 
+        } else {
+            return ModelResponse.Success(resAction);
+        }
+            
+    } catch (err) {
+        console.log(err);
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
+module.exports.getDataByIdPopulateNegativeReports = async (id,languageMessage)=>{
+    try {
+        let resAction = await ProjectModel.findOne({ _id: id }).populate("NegativeReports.NegativeReports");
         if (resAction == null) {
             return ModelResponse.Fail(Message(languageMessage,"project_not_exist")); 
         } else {
