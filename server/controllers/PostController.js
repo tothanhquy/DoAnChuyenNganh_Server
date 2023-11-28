@@ -2,6 +2,8 @@ const ViewAlert = require('../view_models/ViewAlert');
 const Message = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
 var TeamModel = require('../models/TeamModel');  
+var ProjectModel = require('../models/ProjectModel');  
+var CategoryKeywordModel = require('../models/CategoryKeywordModel');  
 var AccountModel = require('../models/AccountModel');  
 var PostModel = require('../models/PostModel');
 var Auth = require('../core/Auth');  
@@ -12,6 +14,16 @@ const Path = require('path');
 
 const GET_LIST_LIMIT_POSTS = 20;
 
+const GET_LIST_FILTER = {
+    Guest:"guest",
+    Team:"team",
+    Project:"project",
+    User:"user",
+    UserSaved:"user_saved",
+    UserLiked:"user_liked",
+    UserFollowed:"user_followed",
+}
+
 //containt the function with business logics  
 var PostController = {  
     
@@ -20,19 +32,30 @@ var PostController = {
         try {  
             console.log(req.body)
             let idAccount = req.user.id;
-            let creator = req.body.creator;
+            let creatorType = req.body.creator_type;
+            let creatorId = req.body.creator_id;
+            let content = req.body.content;
+            let categoryKeywordsId = JSON.parse(req.body.keywords)||[];
 
-            if (creator != "leader" && creator != "user") {
+            if (!Controller.isStringArray(categoryKeywordsId)) {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            if (creatorType != PostModel.AuthorType.Team && creatorType != PostModel.AuthorType.User && creatorType != PostModel.AuthorType.Project) {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));  
                 return;
             }
-            let teamId=undefined;
-            if (creator == "leader") {
-                teamId = req.body.team_id;
+            if(creatorType == PostModel.AuthorType.Team || creatorType == PostModel.AuthorType.Project){
+                if (creatorId == undefined || creatorId == "") {
+                    res.json(Controller.Fail(Message(req.lang, "system_error")));
+                    return; 
+                }
             }
-
-            let content = req.body.content;
-
+            if (content == undefined || content == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
             //valid
             let contentValid = PostModel.isValidContent(content, req.lang);
             if (!contentValid.isValid) {
@@ -42,11 +65,27 @@ var PostController = {
 
             
             let resAction;
+            //check category keywords
+            resAction = await CategoryKeywordModel.getAllCategoryKeywordsByUser(req.lang);
+            let allKeywords = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
             
+            //get valid category keyword
+            let validCategoryKeywordsId = [];
+            categoryKeywordsId.forEach(id => {
+                let ind = allKeywords.findIndex(e=>e._id.toString()==id);
+                if(ind!=-1){
+                    validCategoryKeywordsId.push(id);
+                }
+            });
 
-            if (creator == "leader") {
+            //check is leader
+            if (creatorType == PostModel.AuthorType.Team) {
                 //check team exist
-                resAction = await TeamModel.getDataById(teamId, req.lang);
+                resAction = await TeamModel.getDataById(creatorId, req.lang);
                 let queryTeam = resAction.data;
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));
@@ -58,16 +97,30 @@ var PostController = {
                     res.json(Controller.Fail(Message(req.lang, 'permissions_denied_action')));
                     return;
                 }
+            }else if (creatorType == PostModel.AuthorType.Project) {
+                //check team exist
+                resAction = await ProjectModel.getDataById(creatorId, req.lang);
+                let queryProject = resAction.data;
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));
+                    return;
+                }
+                //check is leader
+                if (queryProject.Leader.toString() != idAccount) {
+                    //not leader
+                    res.json(Controller.Fail(Message(req.lang, 'permissions_denied_action')));
+                    return;
+                }
             }
             
             //get images
-            let createImages = [];
+            let createImagesPath = [];
             let validUploadedImageNumber = 0;
             let uploadedImageCount = 0;
             //upload image
             if (req.files && Object.keys(req.files).length !== 0) {
                 uploadedImageCount = Object.keys(req.files).length;
-                console.log(req.files);
+
                 let images = req.files.images;
 
                 // If 'images' is a single file, convert it to an array
@@ -81,45 +134,39 @@ var PostController = {
 
                     } else {
                         validUploadedImageNumber++;
-                        let imageName = Date.now()+"."+validUploadedImageNumber +"."+ image.name;
+                        if(validUploadedImageNumber>PostModel.MAXIMUM_IMAGES_COUNT){
+                            return;
+                            //maximun images number of one post
+                        }
+                        let imageName = Date.now()+"."+idAccount+"."+validUploadedImageNumber +"."+ image.name;
                         image.mv(Path.join(fullPath, imageName));
-                        createImages.push(imageName);
+                        createImagesPath.push(imageName);
                     }
                 });
                 
             }
             
-
-            let authorType;
-            let userId;
-
-            if (creator == "leader") {
-                authorType = PostModel.AuthorType.Team;
-                teamId = teamId;
-                userId = undefined;
-            } else {
-                authorType = PostModel.AuthorType.User;
-                teamId = undefined;
-                userId = idAccount;
-            }
-            
             //create
-            const postModel = {  
-                AuthorType: authorType,
-                Content: content,
-                Team: teamId,
-                User: userId,
-                PostTime: Date.now(),
-                Images: createImages,
-            };   
+            let postObject = PostModel.PostObject();
+            postObject.AuthorType=creatorType;
+            postObject.Content= content;
+            if(creatorType==PostModel.AuthorType.Project){
+                postObject.Project = creatorId;
+            }else if(creatorType==PostModel.AuthorType.Team){
+                postObject.Team = creatorId;
+            }else {
+                postObject.User = creatorId;
+            }
+            postObject.PostTime=Date.now();
+            postObject.Images=createImagesPath;
+            postObject.CategoryKeywords=validCategoryKeywordsId;
 
-            resAction = await PostModel.createPost(postModel,req.lang); 
+            resAction = await PostModel.createPost(postObject,req.lang); 
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
                 return;
             } else {
-                
-                res.json(Controller.Success({ isComplete:true,uploadImageResult:""+validUploadedImageNumber+"/"+uploadedImageCount }));
+                res.json(Controller.Success({ newPostId:resAction.data.id,isComplete:true,uploadImageResult:""+validUploadedImageNumber+"/"+uploadedImageCount }));
                 return;
             }
             
@@ -139,23 +186,37 @@ var PostController = {
             }
 
             let filter = req.query.filter;
-            let teamId=undefined;
+            let authorId=req.query.author_id;
 
             let timePrivious = req.query.time;
             if (timePrivious == undefined || timePrivious == 0) timePrivious = Date.now();
 
-            if (filter !== "team" && filter !== "guest" && filter !== "user_save"&& filter !== "user_own") {
+            if (filter !== GET_LIST_FILTER.Guest 
+                && filter !== GET_LIST_FILTER.Project 
+                && filter !== GET_LIST_FILTER.Team
+                && filter !== GET_LIST_FILTER.User
+                && filter !== GET_LIST_FILTER.UserSaved
+                && filter !== GET_LIST_FILTER.UserLiked
+                && filter !== GET_LIST_FILTER.UserFollowed){
                 res.json(Controller.Fail(Message(req.lang, "system_error")));  
                 return;
             }
+            if (filter !== GET_LIST_FILTER.Project 
+                && filter !== GET_LIST_FILTER.Team
+                && filter !== GET_LIST_FILTER.User){
+                if (authorId == undefined || authorId == "") {
+                    res.json(Controller.Fail(Message(req.lang, "system_error")));
+                    return; 
+                }
+            }
+            
 
             let resAction;
 
-            let isLeader = false;
-            if (filter == "team") {
-                teamId = req.query.team_id;
+            let isOwner = false;
+            if (filter == GET_LIST_FILTER.Team) {
                 //check team exist
-                resAction = await TeamModel.getDataById(teamId,req.lang);
+                resAction = await TeamModel.getDataById(authorId,req.lang);
                 let queryTeam = resAction.data;
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));
@@ -163,19 +224,42 @@ var PostController = {
                 }
                 //check is leader
                 if (idAccount!==undefined && queryTeam.Leader.toString() == idAccount) {
-                    //not leader
-                    isLeader = true;
+                    isOwner = true;
                 }
-            } if (filter == "user_save" || filter == "user_own") {
+            }else if (filter == GET_LIST_FILTER.Project) {
+                //check project exist
+                resAction = await ProjectModel.getDataById(authorId,req.lang);
+                let queryProject = resAction.data;
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));
+                    return;
+                }
+                //check is leader
+                if (idAccount!==undefined && queryProject.Leader.toString() == idAccount) {
+                    isOwner = true;
+                }
+            }else if (filter == GET_LIST_FILTER.User) {
+                //check team exist
+                resAction = await AccountModel.getDataById(authorId,req.lang);
+                let queryAccount = resAction.data;
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));
+                    return;
+                }
+                //check is mine
+                if (idAccount!==undefined && queryAccount._id.toString() == idAccount) {
+                    isOwner = true;
+                }
+            }else if(filter == GET_LIST_FILTER.UserSaved || filter == GET_LIST_FILTER.UserFollowed || filter == GET_LIST_FILTER.UserLiked){
                 //lot login
                 if (idAccount === undefined) {
-                    res.json(Controller.Fail(Message(req.lang, "system_error")));
+                    res.json(Controller.Fail(Message(req.lang, "system_error"),403));
                     return;
                 }
             }
 
             let condition;
-            let populateAccount = {
+            let populateUser = {
                 path: 'User',
                 select: '_id Name Avatar'
             };
@@ -183,41 +267,82 @@ var PostController = {
                 path: 'Team',
                 select: '_id Name Avatar Leader'
             };
-            if (filter == "guest") {
+            let populateProject = {
+                path: 'Project',
+                select: '_id Name Avatar Leader'
+            };
 
+            if (filter == GET_LIST_FILTER.Guest) {
                 condition = {
                     IsActive:true,
                     PostTime: {$lt:timePrivious}
                 }
-                
-            } else if (filter == "team"){
+            }else if (filter == GET_LIST_FILTER.Team){
                 //team
-                if (isLeader) {
+                if (isOwner) {
                     condition = {
                         AuthorType: PostModel.AuthorType.Team,
-                        Team:teamId,
+                        Team:authorId,
                         PostTime: {$lt:timePrivious}
                     }
                 } else {
                     condition = {
                         AuthorType: PostModel.AuthorType.Team,
-                        Team:teamId,
+                        Team:authorId,
                         IsActive:true,
                         PostTime: {$lt:timePrivious}
                     }
                 }
-            } else if (filter == "user_own"){
-                condition = {
-                    AuthorType: PostModel.AuthorType.User,
-                    User:idAccount,
-                    PostTime: {$lt:timePrivious}
+            }else if (filter == GET_LIST_FILTER.Project){
+                //team
+                if (isOwner) {
+                    condition = {
+                        AuthorType: PostModel.AuthorType.Project,
+                        Project:authorId,
+                        PostTime: {$lt:timePrivious}
+                    }
+                } else {
+                    condition = {
+                        AuthorType: PostModel.AuthorType.Project,
+                        Project:authorId,
+                        IsActive:true,
+                        PostTime: {$lt:timePrivious}
+                    }
                 }
-            } else {
-                //user save
+            }else if (filter == GET_LIST_FILTER.User){
+                //team
+                if (isOwner) {
+                    condition = {
+                        AuthorType: PostModel.AuthorType.User,
+                        User:authorId,
+                        PostTime: {$lt:timePrivious}
+                    }
+                } else {
+                    condition = {
+                        AuthorType: PostModel.AuthorType.User,
+                        User:authorId,
+                        IsActive:true,
+                        PostTime: {$lt:timePrivious}
+                    }
+                }
+            }else if (filter == GET_LIST_FILTER.UserSaved){
                 condition = {
                     IsActive:true,
                     'UsersSave.User':{$in:[idAccount]}
                 }
+            }else if (filter == GET_LIST_FILTER.UserLiked){
+                condition = {
+                    IsActive:true,
+                    'UsersLike.User':{$in:[idAccount]}
+                }
+            }else if (filter == GET_LIST_FILTER.UserFollowed){
+                condition = {
+                    IsActive:true,
+                    'UsersFollow.User':{$in:[idAccount]}
+                }
+            }else {
+                res.json(Controller.Fail(Message(req.lang,"system_error")));   
+                return;
             }
 
             let queryPosts;
@@ -323,15 +448,113 @@ var PostController = {
     },
     
     //http post, authen
-    Update : async function(req,res){  
+    UserInterRact : async function(req,res){  
         try {  
             let idAccount = req.user.id;
 
             let status = req.body.status;
             let postId = req.body.post_id;
-            console.log(req.body);
+            
+            if (postId == undefined || postId == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
 
-            if (status !== "active" && status !== "save") {
+            if (status !== "save" && status !== "follow" && status !== "like") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));  
+                return;
+            }
+
+            let resAction = await PostModel.getDataById(postId,req.lang);
+            let editPost = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            let updateFields=null;
+            let resObject = new PostResponse.PostUpdateInteractResponse();
+            //  = {$set:{Name:editChanelChat.Name,LastTimeAction:editChanelChat.LastTimeAction}};
+            
+            if(status==="save"){
+                //toggle user save
+                let ind = editPost.UsersSave.findIndex(e => e.User==idAccount);
+                if (ind == -1) {
+                    let userSaveObject = new PostModel.UserSaveObject();
+                    userSaveObject.User = idAccount;
+                    userSaveObject.Time = Date.now();
+                    editPost.UsersSave.push(userSaveObject);
+                    resObject.status = PostResponse.PostUpdateInteractResponseStatus.Saved;
+                } else {
+                    editPost.UsersSave.splice(ind, 1);
+                    resObject.status = PostResponse.PostUpdateInteractResponseStatus.Unsaved;
+                }
+                updateFields = {$set:{UsersSave:editPost.UsersSave}};
+            }else if(status==="follow"){
+                //toggle user save
+                let ind = editPost.UsersFollow.findIndex(e => e.User==idAccount);
+                if (ind == -1) {
+                    let userSaveObject = new PostModel.UserSaveObject();
+                    userSaveObject.User = idAccount;
+                    userSaveObject.Time = Date.now();
+                    editPost.UsersFollow.push(userSaveObject);
+                    resObject.status = PostResponse.PostUpdateInteractResponseStatus.Followed;
+                } else {
+                    editPost.UsersFollow.splice(ind, 1);
+                    resObject.status = PostResponse.PostUpdateInteractResponseStatus.Unfollowed;
+                }
+                updateFields = {$set:{UsersFollow:editPost.UsersFollow}};
+            }else if(status==="like"){
+                //toggle user save
+                let ind = editPost.UsersLike.findIndex(e => e.User==idAccount);
+                if (ind == -1) {
+                    let userSaveObject = new PostModel.UserSaveObject();
+                    userSaveObject.User = idAccount;
+                    userSaveObject.Time = Date.now();
+                    editPost.UsersLike.push(userSaveObject);
+                    resObject.status = PostResponse.PostUpdateInteractResponseStatus.Liked;
+                } else {
+                    editPost.UsersLike.splice(ind, 1);
+                    resObject.status = PostResponse.PostUpdateInteractResponseStatus.Unliked;
+                }
+                resObject.totalNumber = editPost.UsersLike.length;
+                updateFields = {$set:{UsersLike:editPost.UsersLike}};
+            }
+                
+            if(updateFields==null){
+                res.json(Controller.Fail(Message(req.lang,"system_error")));  
+                return;
+            }
+
+            //update post
+            resAction = await PostModel.updatePost(editPost._id, updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            }
+            resObject.isComplete=true;
+            res.json(Controller.Success(resObject));   
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
+
+    //http post, authen
+    OwnerUpdate : async function(req,res){  
+        try {  
+            let idAccount = req.user.id;
+
+            let status = req.body.status;
+            let postId = req.body.post_id;
+            
+            if (postId == undefined || postId == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            if (status !== "active" && status !== "save" && status !== "follow" && status !== "like") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));  
                 return;
             }

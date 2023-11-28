@@ -4,8 +4,19 @@ const ModelResponse = require('./ModelResponse');
 const ModelValid = require('./ModelValid');
 
 const MAXIMUM_CONTENT_LENGTH = 3000;
+const MAXIMUM_IMAGES_COUNT = 10;
 
 //specify the fields which we want in our collection(table).  
+const UserSaveSchema = new mongoose.Schema({  
+    User: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Accounts',
+    },
+    Time: {
+        type: Number,
+        default:0
+    }
+ })  
 var PostSchema = new mongoose.Schema({  
     Content: {
         required:true,
@@ -23,6 +34,10 @@ var PostSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Teams' 
     },
+    Project: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Teams' 
+    },
     PostTime: {
         type: Number,
         default:0
@@ -36,15 +51,22 @@ var PostSchema = new mongoose.Schema({
         default:true
     },
     UsersSave: {
-        type: [{
-            User: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Accounts',
-            },
-            SaveTime: {
-                type: Number,
-                default:0
-            }
+        type: [UserSaveSchema],
+        default:[]
+    },
+    UsersLike: {
+        type: [UserSaveSchema],
+        default:[]
+    },
+    UsersFollow: {
+        type: [UserSaveSchema],
+        default:[]
+    },
+    CategoryKeywords: {
+        type:[{
+            type: mongoose.Schema.Types.ObjectId,
+            required:true,
+            ref: 'CategoryKeywords'
         }],
         default:[]
     },
@@ -53,10 +75,34 @@ var PostSchema = new mongoose.Schema({
  //here we saving our collectionSchema with the name user in database  
  //PostModel will contain the instance of the user for manipulating the data.  
 var PostModel = module.exports = mongoose.model('Posts',PostSchema)  
-
-module.exports.AuthorType = {
+module.exports.UserSaveObject = class{ 
+    User=null;
+    Time=0;
+    constructor(user,time){
+        this.User = user;
+        this.Time=time;
+    }
+}
+module.exports.MAXIMUM_IMAGES_COUNT = MAXIMUM_IMAGES_COUNT;
+module.exports.PostObject = class{  
+    Content= "";
+    AuthorType=AuthorType.User;
+    User= null;
+    Team= null;
+    Project=null;
+    PostTime=0;
+    Images=[];
+    IsActive=true;
+    UsersSave=[];
+    UsersLike=[];
+    UsersFollow=[];
+    CategoryKeywords=[];
+    constructor(){}
+}
+const AuthorType = module.exports.AuthorType = {
     Team: "team",
-    User:"user"
+    User:"user",
+    Project:"project",
 }
 
 module.exports.getDataById = async (id,languageMessage)=>{
@@ -74,16 +120,8 @@ module.exports.getDataById = async (id,languageMessage)=>{
     } 
 }
 module.exports.createPost = async function(newPost,languageMessage){ 
-    try {
-        const request = new PostModel({
-            AuthorType: newPost.AuthorType,
-            Content: newPost.Content,
-            Team: newPost.Team,
-            User: newPost.User,
-            PostTime: newPost.PostTime,
-            Images: newPost.Images,
-        });  
-        resAction = await PostModel.create(request);
+    try { 
+        resAction = await PostModel.create(newPost);
         return ModelResponse.Success({id:resAction._id});
     } catch (err) {
         console.log(err);

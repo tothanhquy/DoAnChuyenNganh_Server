@@ -183,6 +183,7 @@ module.exports.sortFunc = function(a, b, incDes){
 }
 
 module.exports.isStringArray = function (arr) {
+    if(arr==undefined)return false;
     if (arr.length == 0) return true;
     return (arr) => arr.every((item) => typeof item === 'string');
 }

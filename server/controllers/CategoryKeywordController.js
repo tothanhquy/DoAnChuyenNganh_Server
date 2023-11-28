@@ -16,6 +16,9 @@ var CategoryKeywordController = {
                 return;
             }
             let items = resAction.data.map(a=> ({id:a._id,name:a.Name})) || [];
+            //sort by name, inscrease
+            items.sort((a, b) => Controller.sortFunc(a.name, b.name, -1));
+
             let resObject = new  ProjectResponse.CategoryKeywordList();
             resObject.keywords = items;
             res.json(Controller.Success(resObject));  

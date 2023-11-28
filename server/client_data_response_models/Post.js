@@ -1,58 +1,55 @@
-
-module.exports.Relationship = {
+const Relationship= module.exports.Relationship = {
     Owner: "owner",
     Guest:"guest",
 }
-module.exports.Post = class { 
-    authorAvatar;
-    authorName;
-    authorId;
-    postId;
-    authorType;
-    postTime;
-    saveTime;
-    content;
-    images;
-    isActive;
-    wasSaved;
-    relationship;
-    constructor(
-        authorAvatar,
-        authorName,
-        authorId,
-        postId,
-        authorType,
-        postTime,
-        saveTime,
-        content,
-        images,
-        isActive,
-        wasSaved,
-        relationship,
-    ) {
-        this.authorAvatar=authorAvatar;
-        this.authorName=authorName;
-        this.authorId=authorId;
-        this.postId=postId;
-        this.authorType=authorType;
-        this.postTime=postTime;
-        this.saveTime=saveTime;
-        this.content=content;
-        this.images=images;
-        this.isActive=isActive;
-        this.wasSaved=wasSaved;
-        this.relationship=relationship;
-    }
-
+const AuthorType = module.exports.AuthorType = {
+    Team: "team",
+    User:"user",
+    Project:"project",
+}
+module.exports.PostListItem = class { 
+    authorAvatar="";
+    authorName="";
+    authorId="";
+    postId="";
+    authorType=AuthorType.User;
+    postTime=0;
+    content="";
+    images=[];
+    isActive=true;
+    relationship=Relationship.Guest;
+    wasSaved=false;
+    savedTime=0;
+    likeNumber=0;
+    wasLiked=false;
+    likedTime=0;
+    wasFollowed=false;
+    followedTime=0;
+    commentsNumber=0;
+    constructor(){}
+}
+module.exports.PostOwnerDetail = class { 
+    authorAvatar="";
+    authorName="";
+    authorId="";
+    postId="";
+    authorType=AuthorType.User;
+    postTime=0;
+    content="";
+    images=[];
+    isActive=true;
+    relationship=Relationship.Owner;
+    categoryKeywordsId=[];
+    constructor(){}
 }
 module.exports.PostsListObject = class {
-    isActionable;
-    posts;
-    isFinish;
-    timePrevious;
+    isActionable=false;
+    posts=[];//PostListItem
+    isFinish=false;
+    timePrevious=0;
     constructor(
-        posts,
-        timePrevious,
+        posts=[],
+        timePrevious=0,
         isFinish = false,
         isActionable = false,
     ) {
@@ -62,4 +59,18 @@ module.exports.PostsListObject = class {
         this.isActionable=isActionable;
     }
 
+}
+module.exports.PostUpdateInteractResponse = class {
+    isComplete=false;
+    status=PostUpdateInteractResponseStatus.Liked;
+    totalNumber=0;
+    constructor(){}
+}
+const PostUpdateInteractResponseStatus = module.exports.PostUpdateInteractResponseStatus = {
+    Followed:"followed",
+    Unfollowed:"unfollowed",
+    Saved:"saved",
+    Unsaved:"unsaved",
+    Liked:"liked",
+    Unliked:"unliked",
 }
