@@ -42,6 +42,10 @@ var PostSchema = new mongoose.Schema({
         type: Number,
         default:0
     },
+    LastEditTime: {
+        type: Number,
+        default:0
+    },
     Images: {
         type: [String],
         default:[]
@@ -91,6 +95,7 @@ module.exports.PostObject = class{
     Team= null;
     Project=null;
     PostTime=0;
+    LastEditTime=0;
     Images=[];
     IsActive=true;
     UsersSave=[];

@@ -29,6 +29,8 @@ var PostController = {
     
     //http post, authen
     Create : async function(req,res){  
+        let imagesPathDeleteCaseOfError = [];
+        let fullPath = "";
         try {  
             console.log(req.body)
             let idAccount = req.user.id;
@@ -126,7 +128,7 @@ var PostController = {
                 // If 'images' is a single file, convert it to an array
                 let imageArray = Array.isArray(images) ? images : [images];
 
-                let fullPath = Path.join(__dirname,'..','public','images','posts');
+                fullPath = Path.join(__dirname,'..','public','images','posts');
                 console.log(imageArray);
                 // Process each uploaded file
                 imageArray.forEach((image, index) => {
@@ -138,12 +140,12 @@ var PostController = {
                             return;
                             //maximun images number of one post
                         }
-                        let imageName = Date.now()+"."+idAccount+"."+validUploadedImageNumber +"."+ image.name;
+                        let imageName = Date.now()+"."+Controller.generateRandomString(10) +"."+ image.name;
                         image.mv(Path.join(fullPath, imageName));
                         createImagesPath.push(imageName);
+                        imagesPathDeleteCaseOfError.push(imageName);
                     }
                 });
-                
             }
             
             //create
@@ -164,6 +166,12 @@ var PostController = {
             resAction = await PostModel.createPost(postObject,req.lang); 
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
+                //delete image uploaded
+                imagesPathDeleteCaseOfError.forEach(path=>{
+                    if(Controller.isExistPath(Path.join(fullPath,path))){
+                        Controller.deleteFile(Path.join(fullPath,path));
+                    }
+                });
                 return;
             } else {
                 res.json(Controller.Success({ newPostId:resAction.data.id,isComplete:true,uploadImageResult:""+validUploadedImageNumber+"/"+uploadedImageCount }));
@@ -173,6 +181,12 @@ var PostController = {
         }  
         catch (error) {  
             console.log(error);
+            //delete image uploaded
+            imagesPathDeleteCaseOfError.forEach(path=>{
+                if(Controller.isExistPath(Path.join(fullPath,path))){
+                    Controller.deleteFile(Path.join(fullPath,path));
+                }
+            });
             res.json(Controller.Fail(Message(req.lang,"system_error")));   
         }  
     },
@@ -439,6 +453,7 @@ var PostController = {
                 
                 newPost.postId=post._id.toString();
                 newPost.postTime=post.PostTime;
+                newPost.lastEditTime=post.LastEditTime;
                 newPost.content=post.Content;
                 newPost.images=post.Images;
                 newPost.isActive=post.IsActive;
@@ -650,6 +665,7 @@ var PostController = {
             
             newPost.postId=queryPost._id.toString();
             newPost.postTime=queryPost.PostTime;
+            newPost.lastEditTime=queryPost.LastEditTime;
             newPost.content=queryPost.Content;
             newPost.images=queryPost.Images;
             newPost.isActive=queryPost.IsActive;
@@ -743,6 +759,7 @@ var PostController = {
             
             newPost.postId=queryPost._id.toString();
             newPost.postTime=queryPost.PostTime;
+            newPost.lastEditTime=queryPost.LastEditTime;
             newPost.content=queryPost.Content;
             newPost.images=queryPost.Images;
             newPost.isActive=queryPost.IsActive;
@@ -758,76 +775,178 @@ var PostController = {
 
     //http post, authen
     OwnerUpdate : async function(req,res){  
+        let imagesPathDeleteCaseOfError = [];
+        let fullPath = "";
         try {  
             let idAccount = req.user.id;
 
-            let status = req.body.status;
+            let activeStatus = req.body.active_status;
             let postId = req.body.post_id;
-            
-            if (postId == undefined || postId == "") {
+
+            let content = req.body.content;
+            let categoryKeywordsId = JSON.parse(req.body.keywords)||[];
+            let oldImages = JSON.parse(req.body.old_images)||[];
+
+            if (!Controller.isStringArray(categoryKeywordsId)) {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (!Controller.isStringArray(oldImages)) {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
 
-            if (status !== "active" && status !== "save" && status !== "follow" && status !== "like") {
-                res.json(Controller.Fail(Message(req.lang, "system_error")));  
+            if (activeStatus != "active" && activeStatus != "unactive") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (postId == undefined || postId == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            if (content == undefined || content == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+            //valid
+            let contentValid = PostModel.isValidContent(content, req.lang);
+            if (!contentValid.isValid) {
+                res.json(Controller.Fail(contentValid.error));
                 return;
             }
 
-            let resAction = await PostModel.getDataById(postId,req.lang);
-            let editPost = resAction.data;
+            let resAction = await CategoryKeywordModel.getAllCategoryKeywordsByUser(req.lang);
+            let allKeywords = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
-            if (status == "active") {
-                //only owner set activeable
-                if (editPost.AuthorType == PostModel.AuthorType.Team) {
-                    //team
-                    teamId = editPost.Team;
-                    resAction = await TeamModel.getDataById(teamId,req.lang);
-                    let queryTeam = resAction.data;
-                    //check team exist
-                    if (resAction.status == ModelResponse.ResStatus.Fail) {
-                        res.json(Controller.Fail(resAction.error));
-                        return;
-                    }
-                    //check is leader
-                    if (queryTeam.Leader.toString() != idAccount) {
-                        //not leader
-                        res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
-                        return; 
-                    }
-                } else {
-                    //user
-                    //check user own post
-                    if (editPost.User.toString() != idAccount) {
-                        res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
-                        return; 
-                    }
+            
+            //get valid category keyword
+            let validCategoryKeywordsId = [];
+            categoryKeywordsId.forEach(id => {
+                let ind = allKeywords.findIndex(e=>e._id.toString()==id);
+                if(ind!=-1){
+                    validCategoryKeywordsId.push(id);
                 }
-                editPost.IsActive = !editPost.IsActive;
+            });
 
-            } else {
-                //set save
-                let indexSaveUser = editPost.UsersSave.findIndex(fe => fe.User==idAccount);
-                if (indexSaveUser == -1) {
-                    editPost.UsersSave.push({ User: idAccount, SaveTime: Date.now() });
-                } else {
-                    editPost.UsersSave.splice(indexSaveUser, 1);
+            resAction = await PostModel.getDataById(postId,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            let editPost = resAction.data.toObject();
+
+            //check permission
+            if (editPost.AuthorType == PostModel.AuthorType.Team) {
+                //check is leader
+                if (editPost.Team.Leader.toString() != idAccount) {
+                    //not owner
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+            }else if (editPost.AuthorType == GET_LIST_FILTER.Project) {
+                //check is leader
+                if (editPost.Project.Leader.toString() != idAccount) {
+                    //not owner
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+            }else if (editPost.AuthorType == GET_LIST_FILTER.User) {
+                //check is mine
+                if (editPost.User._id.toString() != idAccount) {
+                    //not owner
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
                 }
             }
 
+            editPost.LastEditTime = Date.now();
+            editPost.Content = content;
+            editPost.IsActive = activeStatus=="active"?true:false;
+            editPost.CategoryKeywords = validCategoryKeywordsId;
+
+            fullPath = Path.join(__dirname,'..','public','images','posts');
+            //get delete images path
+            let deleteImagesPath = [];
+            for(i = editPost.Images.length-1;i>=0;i++){
+                if(oldImages.indexOf(editPost.Images[i])==-1){
+                    deleteImagesPath.push(editPost.Images[i]);
+                    editPost.Images.splice(i,1);
+                }
+            }
+
+            let beforeImagesNumber =  editPost.Images.length;
+            let uploadImagesPath = [];
+            let validUploadedImageNumber=0;
+            //upload images
+            if (req.files && Object.keys(req.files).length !== 0) {
+                uploadedImageCount = Object.keys(req.files).length;
+
+                let images = req.files.images;
+
+                // If 'images' is a single file, convert it to an array
+                let imageArray = Array.isArray(images) ? images : [images];
+
+                // Process each uploaded file
+                imageArray.forEach((image, index) => {
+                    if (!image.mimetype.startsWith('image/')) {
+
+                    } else {
+                        validUploadedImageNumber++;
+                        if(beforeImagesNumber+validUploadedImageNumber>PostModel.MAXIMUM_IMAGES_COUNT){
+                            return;
+                            //maximun images number of one post
+                        }
+                        let imageName = Date.now()+"."+ Controller.generateRandomString(10) +"."+ image.name;
+                        image.mv(Path.join(fullPath, imageName));
+                        uploadImagesPath.push(imageName);
+                        imagesPathDeleteCaseOfError.push(imageName);
+                    }
+                });
+            }
+            if(uploadImagesPath.length!=0){
+                editPost.Images.push(uploadImagesPath);
+            }
+            
+            let updateFields = {$set:{
+                LastEditTime:editPost.LastEditTime,
+                Content:editPost.Content,
+                LastEIsActiveditTime:editPost.IsActive,
+                CategoryKeywords:editPost.CategoryKeywords,
+                Images:editPost.Images,
+            }};
             //update post
-            resAction = await PostModel.updatePost(editPost._id, editPost,req.lang);
+            resAction = await PostModel.updatePost(editPost._id.toString(), updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
-                res.json(Controller.Fail(resAction.error));   
+                res.json(Controller.Fail(resAction.error)); 
+                //delete image uploaded
+                imagesPathDeleteCaseOfError.forEach(path=>{
+                    if(Controller.isExistPath(Path.join(fullPath,path))){
+                        Controller.deleteFile(Path.join(fullPath,path));
+                    }
+                });  
                 return;
             }
             res.json(Controller.Success({isComplete:true}));   
+
+            //delete images
+            deleteImagesPath.forEach(path=>{
+                if(Controller.isExistPath(Path.join(fullPath,path))){
+                    Controller.deleteFile(Path.join(fullPath,path));
+                }
+            });
+            
         }  
         catch (error) {  
             console.log(error);
+            //delete image uploaded
+            imagesPathDeleteCaseOfError.forEach(path=>{
+                if(Controller.isExistPath(Path.join(fullPath,path))){
+                    Controller.deleteFile(Path.join(fullPath,path));
+                }
+            });
             res.json(Controller.Fail(Message(req.lang,"system_error")));   
         }  
     },
