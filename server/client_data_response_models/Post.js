@@ -11,8 +11,9 @@ module.exports.PostListItem = class {
     authorAvatar="";
     authorName="";
     authorId="";
-    postId="";
     authorType=AuthorType.User;
+    isOwner=false;
+    postId="";
     postTime=0;
     content="";
     images=[];
@@ -38,7 +39,6 @@ module.exports.PostOwnerDetail = class {
     content="";
     images=[];
     isActive=true;
-    relationship=Relationship.Owner;
     categoryKeywordsId=[];
     constructor(){}
 }

@@ -107,7 +107,7 @@ const AuthorType = module.exports.AuthorType = {
 
 module.exports.getDataById = async (id,languageMessage)=>{
     try {
-        let resAction = await PostModel.findOne({ _id: id });
+        let resAction = await PostModel.findOne({ _id: id }).populate("User").populate("Team").populate("Project");
         if (resAction == null) {
             return ModelResponse.Fail(Message(languageMessage,"post_not_exist")); 
         } else {
