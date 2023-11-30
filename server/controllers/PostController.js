@@ -226,7 +226,7 @@ var PostController = {
             
             let resAction;
 
-            let isLoadUnactivePost = false;
+            let isLoadInactivePost = false;
             if (filter == GET_LIST_FILTER.Team) {
                 //check team exist
                 resAction = await TeamModel.getDataById(authorId,req.lang);
@@ -237,7 +237,7 @@ var PostController = {
                 }
                 //check is leader
                 if (idAccount!==undefined && queryTeam.Leader.toString() == idAccount) {
-                    isLoadUnactivePost = true;
+                    isLoadInactivePost = true;
                 }
             }else if (filter == GET_LIST_FILTER.Project) {
                 //check project exist
@@ -249,7 +249,7 @@ var PostController = {
                 }
                 //check is leader
                 if (idAccount!==undefined && queryProject.Leader.toString() == idAccount) {
-                    isLoadUnactivePost = true;
+                    isLoadInactivePost = true;
                 }
             }else if (filter == GET_LIST_FILTER.User) {
                 //check team exist
@@ -261,7 +261,7 @@ var PostController = {
                 }
                 //check is mine
                 if (idAccount!==undefined && queryAccount._id.toString() == idAccount) {
-                    isLoadUnactivePost = true;
+                    isLoadInactivePost = true;
                 }
             }else if(filter == GET_LIST_FILTER.UserSaved || filter == GET_LIST_FILTER.UserFollowed || filter == GET_LIST_FILTER.UserLiked){
                 //lot login
@@ -292,7 +292,7 @@ var PostController = {
                 }
             }else if (filter == GET_LIST_FILTER.Team){
                 //team
-                if (isLoadUnactivePost) {
+                if (isLoadInactivePost) {
                     condition = {
                         AuthorType: PostModel.AuthorType.Team,
                         Team:authorId,
@@ -307,7 +307,7 @@ var PostController = {
                     }
                 }
             }else if (filter == GET_LIST_FILTER.Project){
-                if (isLoadUnactivePost) {
+                if (isLoadInactivePost) {
                     condition = {
                         AuthorType: PostModel.AuthorType.Project,
                         Project:authorId,
@@ -322,7 +322,7 @@ var PostController = {
                     }
                 }
             }else if (filter == GET_LIST_FILTER.User){
-                if (isLoadUnactivePost) {
+                if (isLoadInactivePost) {
                     condition = {
                         AuthorType: PostModel.AuthorType.User,
                         User:authorId,
@@ -796,7 +796,7 @@ var PostController = {
                 return; 
             }
 
-            if (activeStatus != "active" && activeStatus != "unactive") {
+            if (activeStatus != "active" && activeStatus != "inactive") {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));
                 return; 
             }
