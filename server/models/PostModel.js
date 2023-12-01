@@ -36,7 +36,7 @@ var PostSchema = new mongoose.Schema({
     },
     Project: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teams' 
+        ref: 'Projects' 
     },
     PostTime: {
         type: Number,

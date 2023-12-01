@@ -1,16 +1,19 @@
 module.exports.BasicDataUser = class{
     name="";
     avatar="";
+    id="";
     isVerifyEmail=false;
     numberNotReadNotifications=0;
     constructor(
         name="",
         avatar="",
+        id="",
         isVerifyEmail=false,
         numberNotReadNotifications=0
     ){
         this.name=name;
         this.avatar=avatar;
+        this.id=id;
         this.isVerifyEmail=isVerifyEmail;
         this.numberNotReadNotifications=numberNotReadNotifications;
     }

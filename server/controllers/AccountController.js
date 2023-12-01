@@ -548,6 +548,7 @@ var AccountController = {
                 let resData = new AccountResponse.BasicDataUser();
                 resData.name = account.Name;
                 resData.avatar = account.Avatar;
+                resData.id = idAccount;
                 resData.isVerifyEmail = account.IsVerifyEmail;
                 resData.numberNotReadNotifications = await NotificationController.getNumberTotalNotReadNotificationsOfUser(req,idAccount);
                 res.json(Controller.Success(resData));

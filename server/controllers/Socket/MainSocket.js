@@ -9,6 +9,7 @@ module.exports.MainSocket = (io, socket)=>{
         Room.OutRooms(io, socket, roomsOfThisSocket, data);
         roomsOfThisSocket = [];
         roomsOfThisSocket = await Room.JoinPersonalRoom(io, socket, roomsOfThisSocket, data);
+        console.log(roomsOfThisSocket)
     });
     socket.on(SocketEventNames.RECEIVE.JoinChanelChatRooms, async (data)=>{
         roomsOfThisSocket = await Room.JoinChanelChatRooms(io, socket, roomsOfThisSocket, data);
@@ -22,6 +23,7 @@ module.exports.MainSocket = (io, socket)=>{
     socket.on(SocketEventNames.RECEIVE.OutAllRoom,(data)=>{
         Room.OutRooms(io, socket, roomsOfThisSocket, data);
         roomsOfThisSocket = [];
+        console.log(roomsOfThisSocket)
     });
 
     //disconnect

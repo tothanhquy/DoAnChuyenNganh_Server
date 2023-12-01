@@ -100,7 +100,7 @@ var PostController = {
                     return;
                 }
             }else if (creatorType == PostModel.AuthorType.Project) {
-                //check team exist
+                //check project exist
                 resAction = await ProjectModel.getDataById(creatorId, req.lang);
                 let queryProject = resAction.data;
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
@@ -113,6 +113,8 @@ var PostController = {
                     res.json(Controller.Fail(Message(req.lang, 'permissions_denied_action')));
                     return;
                 }
+            }else{
+
             }
             
             //get images
@@ -149,7 +151,7 @@ var PostController = {
             }
             
             //create
-            let postObject = PostModel.PostObject();
+            let postObject = new PostModel.PostObject();
             postObject.AuthorType=creatorType;
             postObject.Content= content;
             if(creatorType==PostModel.AuthorType.Project){
@@ -157,7 +159,7 @@ var PostController = {
             }else if(creatorType==PostModel.AuthorType.Team){
                 postObject.Team = creatorId;
             }else {
-                postObject.User = creatorId;
+                postObject.User = idAccount;
             }
             postObject.PostTime=Date.now();
             postObject.Images=createImagesPath;
@@ -198,7 +200,6 @@ var PostController = {
             if (account != false) { 
                 idAccount = account.id;
             }
-
             let filter = req.query.filter;
             let authorId=req.query.author_id;
 
@@ -215,9 +216,9 @@ var PostController = {
                 res.json(Controller.Fail(Message(req.lang, "system_error")));  
                 return;
             }
-            if (filter !== GET_LIST_FILTER.Project 
-                && filter !== GET_LIST_FILTER.Team
-                && filter !== GET_LIST_FILTER.User){
+            if (filter == GET_LIST_FILTER.Project 
+                || filter == GET_LIST_FILTER.Team
+                || filter == GET_LIST_FILTER.User){
                 if (authorId == undefined || authorId == "") {
                     res.json(Controller.Fail(Message(req.lang, "system_error")));
                     return; 
@@ -266,6 +267,7 @@ var PostController = {
             }else if(filter == GET_LIST_FILTER.UserSaved || filter == GET_LIST_FILTER.UserFollowed || filter == GET_LIST_FILTER.UserLiked){
                 //lot login
                 if (idAccount === undefined) {
+                    console.log(2)
                     res.json(Controller.Fail(Message(req.lang, "system_error"),403));
                     return;
                 }
@@ -430,25 +432,25 @@ var PostController = {
                     newPost.authorAvatar=post.User.Avatar;
                     newPost.authorName=post.User.Name;
                     newPost.authorId=post.User._id.toString();
-                    newPost.authorType=PostModel.AuthorType.User;
+                    newPost.authorType=PostResponse.AuthorType.User;
                     newPost.isOwner = idAccount!=undefined&&post.User._id.toString()==idAccount?true:false;
                 }else if(post.AuthorType == PostModel.AuthorType.Team){
                     newPost.authorAvatar=post.Team.Avatar;
                     newPost.authorName=post.Team.Name;
                     newPost.authorId=post.Team._id.toString();
-                    newPost.authorType=PostModel.AuthorType.Team;
+                    newPost.authorType=PostResponse.AuthorType.Team;
                     newPost.isOwner = idAccount!=undefined&&post.Team.Leader.toString()==idAccount?true:false;
                 }else if(post.AuthorType == PostModel.AuthorType.Project){
                     newPost.authorAvatar=post.Project.Avatar;
                     newPost.authorName=post.Project.Name;
                     newPost.authorId=post.Project._id.toString();
-                    newPost.authorType=PostModel.AuthorType.Project;
+                    newPost.authorType=PostResponse.AuthorType.Project;
                     newPost.isOwner = idAccount!=undefined&&post.Project.Leader.toString()==idAccount?true:false;
                 }else{
                     newPost.authorAvatar="";
                     newPost.authorName="";
                     newPost.authorId="";
-                    newPost.authorType=AuthorType.User;
+                    newPost.authorType=PostResponse.AuthorType.User;
                 }
                 
                 newPost.postId=post._id.toString();
@@ -457,7 +459,7 @@ var PostController = {
                 newPost.content=post.Content;
                 newPost.images=post.Images;
                 newPost.isActive=post.IsActive;
-                newPost.relationship=isOwner?Relationship.Owner:Relationship.Guest;
+                newPost.relationship=newPost.isOwner?PostResponse.Relationship.Owner:PostResponse.Relationship.Guest;
                 newPost.wasSaved=post.UserSavedTime!=0?true:false;
                 newPost.savedTime=post.UserSavedTime;
                 newPost.likeNumber=post.UsersLike.length;
@@ -640,27 +642,27 @@ var PostController = {
                 newPost.authorAvatar=queryPost.User.Avatar;
                 newPost.authorName=queryPost.User.Name;
                 newPost.authorId=queryPost.User._id.toString();
-                newPost.authorType=PostModel.AuthorType.User;
+                newPost.authorType=PostResponse.AuthorType.User;
                 newPost.isOwner = idAccount!=undefined&&queryPost.User._id.toString()==idAccount?true:false;
 
             }else if(queryPost.AuthorType == PostModel.AuthorType.Team){
                 newPost.authorAvatar=queryPost.Team.Avatar;
                 newPost.authorName=queryPost.Team.Name;
                 newPost.authorId=queryPost.Team._id.toString();
-                newPost.authorType=PostModel.AuthorType.Team;
+                newPost.authorType=PostResponse.AuthorType.Team;
                 newPost.isOwner = idAccount!=undefined&&queryPost.Team.Leader.toString()==idAccount?true:false;
 
             }else if(queryPost.AuthorType == PostModel.AuthorType.Project){
                 newPost.authorAvatar=queryPost.Project.Avatar;
                 newPost.authorName=queryPost.Project.Name;
                 newPost.authorId=queryPost.Project._id.toString();
-                newPost.authorType=PostModel.AuthorType.Project;
+                newPost.authorType=PostResponse.AuthorType.Project;
                 newPost.isOwner = idAccount!=undefined&&queryPost.Project.Leader.toString()==idAccount?true:false;
             }else{
                 newPost.authorAvatar="";
                 newPost.authorName="";
                 newPost.authorId="";
-                newPost.authorType=AuthorType.User;
+                newPost.authorType=PostResponse.AuthorType.User;
             }
             
             newPost.postId=queryPost._id.toString();
@@ -669,7 +671,7 @@ var PostController = {
             newPost.content=queryPost.Content;
             newPost.images=queryPost.Images;
             newPost.isActive=queryPost.IsActive;
-            newPost.relationship=isOwner?Relationship.Owner:Relationship.Guest;
+            newPost.relationship=queryPost.isOwner?PostResponse.Relationship.Owner:PostResponse.Relationship.Guest;
             newPost.wasSaved=queryPost.UserSavedTime!=0?true:false;
             newPost.savedTime=queryPost.UserSavedTime;
             newPost.likeNumber=queryPost.UsersLike.length;
@@ -782,6 +784,7 @@ var PostController = {
 
             let activeStatus = req.body.active_status;
             let postId = req.body.post_id;
+            console.log(req.body)
 
             let content = req.body.content;
             let categoryKeywordsId = JSON.parse(req.body.keywords)||[];
@@ -870,7 +873,7 @@ var PostController = {
             fullPath = Path.join(__dirname,'..','public','images','posts');
             //get delete images path
             let deleteImagesPath = [];
-            for(i = editPost.Images.length-1;i>=0;i++){
+            for(i = editPost.Images.length-1;i>=0;i--){
                 if(oldImages.indexOf(editPost.Images[i])==-1){
                     deleteImagesPath.push(editPost.Images[i]);
                     editPost.Images.splice(i,1);
@@ -907,13 +910,15 @@ var PostController = {
                 });
             }
             if(uploadImagesPath.length!=0){
-                editPost.Images.push(uploadImagesPath);
+                editPost.Images.push(...uploadImagesPath);
             }
+            
             
             let updateFields = {$set:{
                 LastEditTime:editPost.LastEditTime,
                 Content:editPost.Content,
-                LastEIsActiveditTime:editPost.IsActive,
+                IsActive:editPost.IsActive,
+                LastEditTime:editPost.LastEditTime,
                 CategoryKeywords:editPost.CategoryKeywords,
                 Images:editPost.Images,
             }};
