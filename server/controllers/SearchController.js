@@ -44,8 +44,8 @@ var MessageController = {
             }else{
                 resAction = await ProjectModel.find(condition);
             }
-            let queryItems = resAction.data;
             let resObject = new SearchResponse.SearchItems();
+            queryItems=resAction;
             if (type == SEARCH_TYPE_OBJECT.User){
                 queryItems.forEach(element => {
                     resObject.items.push(new SearchResponse.SearchItem(element._id.toString(),element.Name,element.Avatar,SearchResponse.ObjectType.User));
@@ -59,7 +59,7 @@ var MessageController = {
                     resObject.items.push(new SearchResponse.SearchItem(element._id.toString(),element.Name,element.Avatar,SearchResponse.ObjectType.Project));
                 });
             }
-            
+            console.log(resObject)
             res.json(Controller.Success(resObject));  
         }  
         catch (error) {  

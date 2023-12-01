@@ -213,7 +213,7 @@ var ProjectSchema = new mongoose.Schema({
     },
  })  
 
-ProjectSchema.createIndex(
+ProjectSchema.index(
     {
         "SearchName": "text"
     }

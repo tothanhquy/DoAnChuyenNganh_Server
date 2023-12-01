@@ -82,10 +82,9 @@ var AccountSchema = new mongoose.Schema({
     },
  })  
   
-AccountSchema.createIndex(
+AccountSchema.index(
     {
-        "SearchName": "text",
-        "Email": "text"
+        "SearchName": "text"
     }
 )
  //here we saving our collectionSchema with the name user in database  

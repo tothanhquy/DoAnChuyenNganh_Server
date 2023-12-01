@@ -101,6 +101,9 @@ module.exports.setRouter = function(app){
   
   var projectRouter = require('./routes/ProjectRouter');
   app.use('/Project', projectRouter);
+
+  var searchRouter = require('./routes/SearchRouter');
+  app.use('/Search', searchRouter);
   
   
   // catch 404 and forward to error handler

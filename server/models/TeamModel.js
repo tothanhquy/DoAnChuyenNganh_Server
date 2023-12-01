@@ -47,7 +47,7 @@ var TeamSchema = new mongoose.Schema({
         ref: 'ChanelChats' 
     },
  })  
-TeamSchema.createIndex(
+TeamSchema.index(
     {
         "SearchName": "text"
     }
