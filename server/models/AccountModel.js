@@ -19,6 +19,10 @@ var AccountSchema = new mongoose.Schema({
         type: String,
         required:true
     },  
+    SearchName: {
+        type: String,
+        default:""
+    },  
     Avatar: {
         type:String
     },
@@ -78,6 +82,12 @@ var AccountSchema = new mongoose.Schema({
     },
  })  
   
+AccountSchema.createIndex(
+    {
+        "SearchName": "text",
+        "Email": "text"
+    }
+)
  //here we saving our collectionSchema with the name user in database  
  //AccountModel will contain the instance of the user for manipulating the data.  
 var AccountModel = module.exports = mongoose.model('Accounts',AccountSchema)  
@@ -114,6 +124,7 @@ module.exports.createAccount = async function(newAccount,languageMessage){
     try {
         const account = new AccountModel({
             Name: newAccount.Name,
+            SearchName: newAccount.SearchName,
             Email: newAccount.Email,
             Password: newAccount.Password,
             VerifyEmailToken: "",

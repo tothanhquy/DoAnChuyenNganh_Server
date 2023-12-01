@@ -35,7 +35,9 @@ var ProjectController = {
             let idAccountObject = accountOwner._id;
 
             let newItem = new ProjectModel();
+            let searchName = Controller.toNonAccentVietnamese(name).toLowerCase();
             newItem.Name = name;
+            newItem.SearchName = searchName;
             newItem.Leader = idAccountObject;
             newItem.CreatedTime = Date.now();
 
@@ -354,8 +356,11 @@ var ProjectController = {
             }
 
             //update
+            let searchName = Controller.toNonAccentVietnamese(editProject.Name).toLowerCase();
+
             let updateFields = {$set:{
                 Name:editProject.Name,
+                SearchName:searchName,
                 Slogan:editProject.Slogan,
                 Description:editProject.Description,
             }};

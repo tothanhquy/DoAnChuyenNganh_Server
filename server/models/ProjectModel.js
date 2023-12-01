@@ -134,7 +134,11 @@ var ProjectSchema = new mongoose.Schema({
     Name: {
         type: String,
         required:true
-    },  
+    },    
+    SearchName: {
+        type: String,
+        default:""
+    }, 
     Avatar: {
         type:String,
         default:""
@@ -208,7 +212,12 @@ var ProjectSchema = new mongoose.Schema({
         default:[]
     },
  })  
-  
+
+ProjectSchema.createIndex(
+    {
+        "SearchName": "text"
+    }
+)
  //here we saving our collectionSchema with the name user in database  
  //ProjectModel will contain the instance of the user for manipulating the data.  
 var ProjectModel = module.exports = mongoose.model('Projects',ProjectSchema)  

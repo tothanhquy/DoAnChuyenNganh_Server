@@ -1,0 +1,30 @@
+module.exports.SearchItem=class{
+    id="";
+    name="";
+    avatar="";
+    type=ObjectType.User;//ObjectType
+    constructor(
+        id="",
+        name="",
+        avatar="",
+        type=ObjectType.User,
+    ){
+        this.id=id;
+        this.name=name;
+        this.avatar=avatar;
+        this.type=type;
+    }
+}
+const ObjectType = module.exports.ObjectType = {
+    User:"user",
+    Team:"team",
+    Project:"project"
+}
+module.exports.SearchItems=class{
+    items=[];//SearchItem
+    constructor(
+        items=[]
+    ){
+        this.items=items;
+    }
+}

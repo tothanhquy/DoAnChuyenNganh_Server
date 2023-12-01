@@ -34,9 +34,11 @@ var TeamController = {
             }
 
             let idAccountObject = accountOwner._id;
+            let searchName = Controller.toNonAccentVietnamese(name).toLowerCase();
 
             const teamModel = {  
                 Name: name,
+                SearchName: searchName,
                 Leader: idAccountObject,
                 Members:[idAccountObject]
             };   
@@ -420,8 +422,17 @@ var TeamController = {
                 res.json(Controller.Fail(descriptionValid.error));
                 return;
             }
+            let searchName = Controller.toNonAccentVietnamese(editTeam.Name).toLowerCase();
+
+            let updateFields = {$set:{
+                Name:editTeam.Name,
+                SearchName:searchName,
+                InternalInfo:editTeam.InternalInfo,
+                Maxim:editTeam.Maxim,
+                Description:editTeam.Description
+            }};
             //update
-            resAction = await TeamModel.updateTeam(idTeam, editTeam,req.lang);
+            resAction = await TeamModel.updateTeam(idTeam, updateFields,req.lang);
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));   
                 return;

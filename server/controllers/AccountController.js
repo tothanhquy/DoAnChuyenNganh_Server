@@ -49,10 +49,12 @@ var AccountController = {
 
             password = await AccountModel.hashPassword(password);
 
+            let searchName = Controller.toNonAccentVietnamese(name).toLowerCase();
             const accountModel = {  
                 Name:name,  
                 Email:email,  
                 Password:password,
+                SearchName:searchName
             };   
             resAction = await AccountModel.createAccount(accountModel,req.lang); 
             if (resAction.status == ModelResponse.ResStatus.Fail) {

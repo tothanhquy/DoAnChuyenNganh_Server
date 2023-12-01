@@ -16,7 +16,11 @@ var TeamSchema = new mongoose.Schema({
     Name: {
         type: String,
         required:true
-    },  
+    },    
+    SearchName: {
+        type: String,
+        default:""
+    }, 
     Avatar: {
         type:String
     },
@@ -43,7 +47,11 @@ var TeamSchema = new mongoose.Schema({
         ref: 'ChanelChats' 
     },
  })  
-  
+TeamSchema.createIndex(
+    {
+        "SearchName": "text"
+    }
+)
  //here we saving our collectionSchema with the name user in database  
  //TeamModel will contain the instance of the user for manipulating the data.  
 var TeamModel = module.exports = mongoose.model('Teams',TeamSchema)  
@@ -67,6 +75,7 @@ module.exports.createTeam = async function(newTeam,languageMessage){
     try {
         const team = new TeamModel({
             Name: newTeam.Name,
+            SearchName: newTeam.SearchName,
             Leader: newTeam.Leader,
             Members: newTeam.Members,
         });  

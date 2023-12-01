@@ -256,9 +256,22 @@ var UserProfileController = {
                     res.json(Controller.Fail(workExperienceValid.error));
                     return;
                 }
+                let searchName = Controller.toNonAccentVietnamese(editAccount.Name).toLowerCase();
+
+                let updateFields = {$set:{
+                    Name:editAccount.Name,
+                    SearchName:searchName,
+                    BirthYear:editAccount.BirthYear,
+                    Maxim:editAccount.Maxim,
+                    Description:editAccount.Description,
+                    Contact:editAccount.Contact,
+                    Education:editAccount.Education,
+                    CareerTarget:editAccount.CareerTarget,
+                    WorkExperience:editAccount.WorkExperience
+                }};
 
                 //update
-                resAction = await AccountModel.updateAccount(idAccount, editAccount,req.lang);
+                resAction = await AccountModel.updateAccount(idAccount, updateFields,req.lang);
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));   
                     return;
