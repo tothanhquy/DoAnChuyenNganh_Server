@@ -11,7 +11,7 @@ module.exports.Comment=class{
     level=0;
     likeNumber=0;
     wasLike=false;
-    replynumber=0;
+    replyNumber=0;
     isLoadMore=false;//not load more
     isAuthor=false;
     constructor(
@@ -27,7 +27,7 @@ module.exports.Comment=class{
         level=0,
         likeNumber=0,
         wasLike=false,
-        replynumber=0,
+        replyNumber=0,
         isLoadMore=false,
         isAuthor=false,
     ){
@@ -43,7 +43,7 @@ module.exports.Comment=class{
         this.level=level;
         this.likeNumber=likeNumber;
         this.wasLike=wasLike;
-        this.replynumber=replynumber;
+        this.replyNumber=replyNumber;
         this.isLoadMore=isLoadMore;
         this.isAuthor=isAuthor;
     }

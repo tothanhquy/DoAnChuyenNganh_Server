@@ -67,7 +67,7 @@ var CommentController = {
                     comment.Level,
                     comment.UsersLike.length,
                     idAccount!=undefined&&comment.UsersLike.findIndex(e=>e.toString()==idAccount)!=-1,
-                    comment.ChildsReplyNumber,
+                    comment.ChildsreplyNumber,
                     index==count-1&&isLoadMore,
                     idAccount!=undefined&&idAccount==comment.Author._id.toString()
                 ));
@@ -152,7 +152,7 @@ var CommentController = {
             if(queryReply!=null){
                 //update reply comment
                 let updateFields = {$set:{
-                    ChildsReplyNumber:queryReply.ChildsReplyNumber++
+                    ChildsreplyNumber:queryReply.ChildsreplyNumber++
                 }};
     
                 resAction = await CommentModel.updateComment(idReply, updateFields,req.lang);
@@ -199,7 +199,7 @@ var CommentController = {
         }  
     },
     //http post, authen
-    UserInterRact : async function(req,res){  
+    UserInteract : async function(req,res){  
         try {  
             let idAccount = req.user.id;
 

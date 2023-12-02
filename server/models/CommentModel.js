@@ -60,7 +60,7 @@ module.exports.getComments = async (id_post,id_reply, time, limit, languageComme
     try {
         let resAction;
         if(id_reply==null){
-            resAction = await CommentModel.find({"Post":new mongoose.Types.ObjectId(id_post), Time:{$lte: time}}).sort({Time: -1}).limit(limit).populate("Author");
+            resAction = await CommentModel.find({"Post":new mongoose.Types.ObjectId(id_post),"ParentReply":null, Time:{$lte: time}}).sort({Time: -1}).limit(limit).populate("Author");
         }else{
             resAction = await CommentModel.find({"Post":new mongoose.Types.ObjectId(id_post),"ParentReply":new mongoose.Types.ObjectId(id_reply), Time:{$lte: time}}).sort({Time: -1}).limit(limit).populate("Author");
         }
