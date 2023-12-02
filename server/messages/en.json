@@ -101,4 +101,7 @@
     ,"project_vote_star_constraint":"Maxim vote star is {{max}}"
     ,"resource_not_exist":"Resource not exist."
     
+    ,"comment_content_constraint":"Minimum comment length 1 and maximum {{length}} characters."
+    ,"comment_not_exist":"Comment is not exist."
+
 }

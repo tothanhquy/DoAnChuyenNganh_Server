@@ -74,6 +74,10 @@ var PostSchema = new mongoose.Schema({
         }],
         default:[]
     },
+    CommentsNumber:{
+        type:Number,
+        default:0,
+    }
  })  
   
  //here we saving our collectionSchema with the name user in database  
@@ -102,6 +106,7 @@ module.exports.PostObject = class{
     UsersLike=[];
     UsersFollow=[];
     CategoryKeywords=[];
+    CommentsNumber=0;
     constructor(){}
 }
 const AuthorType = module.exports.AuthorType = {

@@ -328,6 +328,19 @@ module.exports.getProjects = async (conditions,languageMessage)=>{
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
+module.exports.getProjectsByTags = async (tags,languageMessage)=>{
+    try {
+        let conditions={
+            Tags: { $all: [...tags] }
+        }
+        let resAction = await ProjectModel.find(conditions);
+        return ModelResponse.Success(resAction);
+            
+    } catch (err) {
+        console.log(err);
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
 module.exports.getProjectsPopulateCustom = async (conditions,populate,languageMessage)=>{
     try {
         let resAction = await ProjectModel.find(conditions).populate(populate);

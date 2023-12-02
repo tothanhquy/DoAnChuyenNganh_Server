@@ -467,7 +467,7 @@ var PostController = {
                 newPost.likedTime=post.UserlikedTime;
                 newPost.wasFollowed=post.UserFollowedTime!=0?true:false;
                 newPost.followedTime=post.UserFollowedTime;
-                newPost.commentsNumber=0;
+                newPost.commentsNumber=post.CommentsNumber;
                 
                 resObject.posts.push(newPost);
             });
@@ -679,7 +679,7 @@ var PostController = {
             newPost.likedTime=queryPost.UserlikedTime;
             newPost.wasFollowed=queryPost.UserFollowedTime!=0?true:false;
             newPost.followedTime=queryPost.UserFollowedTime;
-            newPost.commentsNumber=0;
+            newPost.commentsNumber=queryPost.CommentsNumber;
 
             if(newPost.isActive==true||newPost.isOwner==true){
                 resObject.posts.push(newPost);
@@ -955,6 +955,24 @@ var PostController = {
             res.json(Controller.Fail(Message(req.lang,"system_error")));   
         }  
     },
+    //not http
+    inscreaseCommentNumbers:async function(req,editPost){
+        try{
+            let updateFields = {$set:{
+                CommentsNumber:editPost.CommentsNumber++
+            }};
+
+            resAction = await PostModel.updatePost(editPost._id.toString(), updateFields,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                return false;
+            } else {
+                return true;
+            }
+        }catch(err){
+            console.log(err);
+            return false;
+        }
+    }
 
 }  
   
