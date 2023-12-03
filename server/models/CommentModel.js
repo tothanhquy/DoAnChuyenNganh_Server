@@ -17,7 +17,7 @@ var CommentSchema = new mongoose.Schema({
     },
     Post: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Comments' ,
+        ref: 'Posts' ,
         required:true
     },
     Author: {
@@ -73,7 +73,7 @@ module.exports.getComments = async (id_post,id_reply, time, limit, languageComme
 }
 module.exports.getDataById = async (id,languageComment)=>{
     try {
-        let resAction = await CommentModel.findOne({ _id: id }).populate("Author");
+        let resAction = await CommentModel.findOne({ _id: id }).populate("Author").populate("Post");
         if (resAction == null) {
             return ModelResponse.Fail(Messages(languageComment,"comment_not_exist")); 
         } else {

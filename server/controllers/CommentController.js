@@ -6,8 +6,9 @@ var Controller = require('./Controller');
 var Auth = require('../core/Auth');  
 var PostController = require('./PostController');
 const CommentResponse = require("../client_data_response_models/Comment");
+const NegativeWord = require('./Tool/NegativeWord');
 
-const LIMIT_COMMENTS_PER_RESQUEST = 3;
+const LIMIT_COMMENTS_PER_RESQUEST = 6;
 const USER_INTERACT_REQUEST_STATUS={
     Like:"like",
     Delete:"delete"
@@ -98,6 +99,9 @@ var CommentController = {
                 idReply = null;
             }
 
+            //filter negative words
+            content = NegativeWord.filterString(content);
+
             let contentValid = CommentModel.isValidContent(content, req.lang);
             if (!contentValid.isValid) {
                 res.json(Controller.Fail(Messages(req.lang, "system_error")));  
@@ -121,7 +125,7 @@ var CommentController = {
                     return;
                 }
                 queryReply = resAction.data;
-                if(queryReply.Post.toString()!=idPost){
+                if(queryReply.Post._id.toString()!=idPost){
                     //is not a Comment of this post
                     res.json(Controller.Fail(Messages(req.lang,'permissions_denied_action')));
                     return;
@@ -177,7 +181,7 @@ var CommentController = {
                 resAction.data._id.toString(),
                 resAction.data.WasDeleted,
                 resAction.data.Content,
-                resAction.data.Post.toString(),
+                resAction.data.Post._id.toString(),
                 resAction.data.Author._id.toString(),
                 resAction.data.Author.Name,
                 resAction.data.Author.Avatar,
@@ -243,8 +247,23 @@ var CommentController = {
                     //delete
                     if(editComment.Author._id.toString()!=idAccount){
                         //not owner
-                        res.json(Controller.Fail(Messages(req.lang,'permissions_denied_action')));
-                        return;
+                        resAction = await PostModel.getDataById(editComment.Post._id.toString(),req.lang);
+                        if (resAction.status == ModelResponse.ResStatus.Fail) {
+                            res.json(Controller.Fail(resAction.error));
+                            return;
+                        }
+                        let queryPost = resAction.data.toObject();
+
+                        let isOwner = false;
+                        if (
+                            (queryPost.AuthorType == PostModel.AuthorType.Team && queryPost.Team.Leader.toString() != idAccount)
+                            ||(queryPost.AuthorType == PostModel.AuthorType.Project && queryPost.Project.Leader.toString() != idAccount)
+                            ||(queryPost.AuthorType == PostModel.AuthorType.User && queryPost.User._id.toString() != idAccount)
+                            ) {
+                            //check is leader
+                            res.json(Controller.Fail(Messages(req.lang,'permissions_denied_action')));
+                            return;
+                        }
                     }
                     updateFields = {$set:{WasDeleted:true}};
                     resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Deleted;
