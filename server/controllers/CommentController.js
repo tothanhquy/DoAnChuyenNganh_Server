@@ -1,12 +1,13 @@
 const Messages = require('../messages/Messages');
 const ModelResponse = require('../models/ModelResponse');
-var AccountModel = require('../models/AccountModel');  
+var PostModel = require('../models/PostModel');  
 var CommentModel = require('../models/CommentModel');  
 var Controller = require('./Controller');
+var Auth = require('../core/Auth');  
 var PostController = require('./PostController');
 const CommentResponse = require("../client_data_response_models/Comment");
 
-const LIMIT_COMMENTS_PER_RESQUEST = 5;
+const LIMIT_COMMENTS_PER_RESQUEST = 3;
 const USER_INTERACT_REQUEST_STATUS={
     Like:"like",
     Delete:"delete"
@@ -63,11 +64,11 @@ var CommentController = {
                     comment.Author.Name,
                     comment.Author.Avatar,
                     comment.Time,
-                    comment.ParentReply.toString(),
+                    comment.ParentReply==null?null:comment.ParentReply.toString(),
                     comment.Level,
                     comment.UsersLike.length,
                     idAccount!=undefined&&comment.UsersLike.findIndex(e=>e.toString()==idAccount)!=-1,
-                    comment.ChildsreplyNumber,
+                    comment.ChildsReplyNumber,
                     index==count-1&&isLoadMore,
                     idAccount!=undefined&&idAccount==comment.Author._id.toString()
                 ));
@@ -119,12 +120,13 @@ var CommentController = {
                     res.json(Controller.Fail(resAction.error));
                     return;
                 }
+                queryReply = resAction.data;
                 if(queryReply.Post.toString()!=idPost){
                     //is not a Comment of this post
                     res.json(Controller.Fail(Messages(req.lang,'permissions_denied_action')));
                     return;
                 }
-                queryReply = resAction.data;
+                
             }
 
             let newComment = new CommentModel();
@@ -144,28 +146,26 @@ var CommentController = {
             newComment.ChildsReply=[]
 
             resAction = await CommentModel.createComment(newComment,req.lang);
-            let newCommentId = resAction.data.id;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
+            let newCommentId = resAction.data.id;
             if(queryReply!=null){
                 //update reply comment
+                // console.log(queryReply.ChildsReplyNumber);
                 let updateFields = {$set:{
-                    ChildsreplyNumber:queryReply.ChildsreplyNumber++
+                    ChildsReplyNumber:queryReply.ChildsReplyNumber+1
                 }};
-    
+                
                 resAction = await CommentModel.updateComment(idReply, updateFields,req.lang);
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
                     res.json(Controller.Fail(resAction.error));   
                     return;
-                } else {
-                    res.json(Controller.Success({ tags: tags}));  
-                    return;
                 }
             }
             //update post comments number
-            let resUpdatePost = PostController.inscreaseCommentNumbers(req,editPost);
+            let resUpdatePost = await PostController.inscreaseCommentNumbers(req,editPost);
 
             //get return new comment
             resAction = await CommentModel.getDataById(newCommentId,req.lang);
@@ -182,7 +182,7 @@ var CommentController = {
                 resAction.data.Author.Name,
                 resAction.data.Author.Avatar,
                 resAction.data.Time,
-                resAction.data.ParentReply.toString(),
+                resAction.data.ParentReply==null?null:resAction.data.ParentReply.toString(),
                 resAction.data.Level,
                 0,
                 false,
@@ -206,13 +206,13 @@ var CommentController = {
             let status = req.body.status;
             let commentId = req.body.comment_id;
             
-            if (postId == undefined || postId == "") {
-                res.json(Controller.Fail(Message(req.lang, "system_error")));
+            if (commentId == undefined || commentId == "") {
+                res.json(Controller.Fail(Messages(req.lang, "system_error")));
                 return; 
             }
 
             if (status !== USER_INTERACT_REQUEST_STATUS.Like && status !== USER_INTERACT_REQUEST_STATUS.Delete) {
-                res.json(Controller.Fail(Message(req.lang, "system_error")));  
+                res.json(Controller.Fail(Messages(req.lang, "system_error")));  
                 return;
             }
 
@@ -222,51 +222,54 @@ var CommentController = {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
-
-            let updateFields=null;
             let resObject = new CommentResponse.CommentUpdateInteractResponse();
-            //  = {$set:{Name:editChanelChat.Name,LastTimeAction:editChanelChat.LastTimeAction}};
-            
-            if(status===USER_INTERACT_REQUEST_STATUS.Like){
-                //toggle user like
-                let ind = editComment.UsersLike.findIndex(e => e.toString()==idAccount);
-                if (ind == -1) {
-                    editComment.UsersLike.push(idAccount);
-                    resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Liked;
-                } else {
-                    editComment.UsersLike.splice(ind, 1);
-                    resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Unliked;
+                
+            if(!editComment.WasDeleted){
+                let updateFields=null;
+                
+                if(status===USER_INTERACT_REQUEST_STATUS.Like){
+                    //toggle user like
+                    let ind = editComment.UsersLike.findIndex(e => e.toString()==idAccount);
+                    if (ind == -1) {
+                        editComment.UsersLike.push(idAccount);
+                        resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Liked;
+                    } else {
+                        editComment.UsersLike.splice(ind, 1);
+                        resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Unliked;
+                    }
+                    resObject.totalNumber = editComment.UsersLike.length;
+                    updateFields = {$set:{UsersLike:editComment.UsersLike}};
+                }else{
+                    //delete
+                    if(editComment.Author._id.toString()!=idAccount){
+                        //not owner
+                        res.json(Controller.Fail(Messages(req.lang,'permissions_denied_action')));
+                        return;
+                    }
+                    updateFields = {$set:{WasDeleted:true}};
+                    resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Deleted;
                 }
-                resObject.totalNumber = editComment.UsersLike.length;
-                updateFields = {$set:{UsersLike:editComment.UsersLike}};
-            }else{
-                //delete
-                if(editComment.Author._id.toString()!=idAccount){
-                    //not owner
-                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    
+                if(updateFields==null){
+                    res.json(Controller.Fail(Messages(req.lang,"system_error")));  
                     return;
                 }
-                updateFields = {$set:{WasDeleted:true}};
-                resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Deleted;
-            }
-                
-            if(updateFields==null){
-                res.json(Controller.Fail(Message(req.lang,"system_error")));  
-                return;
-            }
 
-            //update post
-            resAction = await CommentModel.updateComment(editComment._id, updateFields,req.lang);
-            if (resAction.status == ModelResponse.ResStatus.Fail) {
-                res.json(Controller.Fail(resAction.error));   
-                return;
+                //update post
+                resAction = await CommentModel.updateComment(editComment._id, updateFields,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));   
+                    return;
+                }
+            }else{
+                resObject.status = CommentResponse.CommentUpdateInteractResponseStatus.Deleted;
             }
             resObject.isComplete=true;
             res.json(Controller.Success(resObject));   
         }  
         catch (error) {  
             console.log(error);
-            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+            res.json(Controller.Fail(Messages(req.lang,"system_error")));   
         }  
     },
     

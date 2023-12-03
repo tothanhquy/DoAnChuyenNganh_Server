@@ -959,7 +959,7 @@ var PostController = {
     inscreaseCommentNumbers:async function(req,editPost){
         try{
             let updateFields = {$set:{
-                CommentsNumber:editPost.CommentsNumber++
+                CommentsNumber:editPost.CommentsNumber+1
             }};
 
             resAction = await PostModel.updatePost(editPost._id.toString(), updateFields,req.lang);

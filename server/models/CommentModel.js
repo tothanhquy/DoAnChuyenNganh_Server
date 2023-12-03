@@ -1,4 +1,4 @@
-const Comment = require('../Comments/Comments');
+const Messages = require('../messages/Messages');
 var mongoose = require('./ConnectDatabase');
 const ModelResponse = require('./ModelResponse');
 const ModelValid = require('./ModelValid');
@@ -59,30 +59,30 @@ var CommentModel = module.exports = mongoose.model('Comments',CommentSchema,'Com
 module.exports.getComments = async (id_post,id_reply, time, limit, languageComment)=>{
     try {
         let resAction;
-        if(id_reply==null){
+        if(id_reply==null||id_reply==""){
             resAction = await CommentModel.find({"Post":new mongoose.Types.ObjectId(id_post),"ParentReply":null, Time:{$lte: time}}).sort({Time: -1}).limit(limit).populate("Author");
         }else{
-            resAction = await CommentModel.find({"Post":new mongoose.Types.ObjectId(id_post),"ParentReply":new mongoose.Types.ObjectId(id_reply), Time:{$lte: time}}).sort({Time: -1}).limit(limit).populate("Author");
+            resAction = await CommentModel.find({"Post":new mongoose.Types.ObjectId(id_post),"ParentReply":new mongoose.Types.ObjectId(id_reply), Time:{$gte: time}}).sort({Time: 1}).limit(limit).populate("Author");
         }
         return ModelResponse.Success(resAction);
             
     } catch (err) {
         console.log(err)
-        return ModelResponse.Fail(Comment(languageComment,"system_error"));
+        return ModelResponse.Fail(Messages(languageComment,"system_error"));
     } 
 }
 module.exports.getDataById = async (id,languageComment)=>{
     try {
         let resAction = await CommentModel.findOne({ _id: id }).populate("Author");
         if (resAction == null) {
-            return ModelResponse.Fail(Comment(languageComment,"comment_not_exist")); 
+            return ModelResponse.Fail(Messages(languageComment,"comment_not_exist")); 
         } else {
             return ModelResponse.Success(resAction);
         }
             
     } catch (err) {
         console.log(err)
-        return ModelResponse.Fail(Comment(languageComment,"system_error"));
+        return ModelResponse.Fail(Messages(languageComment,"system_error"));
     } 
 }
 module.exports.createComment = async function(newComments,languageComment){ 
@@ -91,7 +91,7 @@ module.exports.createComment = async function(newComments,languageComment){
         return ModelResponse.Success({id:resAction._id.toString()});
     } catch (err) {
         console.log(err)
-        return ModelResponse.Fail(Comment(languageComment,"system_error"));
+        return ModelResponse.Fail(Messages(languageComment,"system_error"));
     }
 }
 module.exports.getNumberCommentOfPost = async (idPost, languageMessage)=>{
@@ -100,26 +100,26 @@ module.exports.getNumberCommentOfPost = async (idPost, languageMessage)=>{
         return ModelResponse.Success(count);
     } catch (err) {
         console.log(err)
-        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+        return ModelResponse.Fail(Messages(languageMessage,"system_error"));
     } 
 }
 module.exports.updateComment = async (id,update,languageMessage) => {  
     try {
         let resAction = await CommentModel.updateOne({ _id: id }, update);
         if (resAction.matchedCount != 1) {
-            return ModelResponse.Fail(Message(languageMessage,"comment_not_exist"));
+            return ModelResponse.Fail(Messages(languageMessage,"comment_not_exist"));
         } else {
             return ModelResponse.Success({isComplete: true});
         }
     } catch (err) {
-        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+        return ModelResponse.Fail(Messages(languageMessage,"system_error"));
     }
 }
 var isValidContent = module.exports.isValidContent = function(content="",languageComment) {
     if (content.length > 0 && content.length <= MAXIMUM_CONTENT_LENGTH) {
         return ModelValid.Valid();
     } else {
-        return ModelValid.Invalid(Comment(languageComment,"comment_content_constraint").replace('{{length}}',MAXIMUM_CONTENT_LENGTH ));
+        return ModelValid.Invalid(Messages(languageComment,"comment_content_constraint").replace('{{length}}',MAXIMUM_CONTENT_LENGTH ));
     }
 }
 module.exports.MAXIMUM_CONTENT_LENGTH = MAXIMUM_CONTENT_LENGTH;
