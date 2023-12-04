@@ -88,6 +88,20 @@ module.exports.getDataById = async (id,languageMessage)=>{
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
+module.exports.getDataByIdPopulateUser = async (id,languageMessage)=>{
+    try {
+        let resAction = await RequestModel.findOne({ _id: id }).populate("User");
+        if (resAction == null) {
+            return ModelResponse.Fail(Message(languageMessage,"request_not_exist")); 
+        } else {
+            return ModelResponse.Success(resAction);
+        }
+            
+    } catch (err) {
+        console.log(err);
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    } 
+}
 module.exports.createRequest = async function(newRequest,languageMessage){ 
     try {
         const request = new RequestModel({

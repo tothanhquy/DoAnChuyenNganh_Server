@@ -5,5 +5,22 @@
     ,"add_you_into_group_chat":"{{Subjects}} đã thêm bạn vào nhóm chat {{SubObject}}."
     ,"change_name_group_chat":"{{Subjects}} đã đổi tên nhóm chat {{SubObject}} thành {{MainObject}}."
 
+    ,"send_you_friend_request":"{{Subjects}} đã gửi bạn một yêu cầu kết bạn."
+    ,"become_friend":"{{Subjects}} và bạn đã trở thành bạn bè."
+
+    ,"send_you_team_recruit_request":"{{Subjects}} đã gửi bạn một yêu cầu chiêu mộ vào team {{MainObject}}."
+    ,"send_you_team_join_request":"{{Subjects}} đã gửi bạn một yêu cầu xin gia nhập vào team {{MainObject}}."
+    ,"user_agree_team_join_request":"{{Subjects}} đã đồng ý yêu cầu xin gia nhập của bạn vào team {{MainObject}}."
+    ,"user_disagree_team_join_request":"{{Subjects}} đã từ chối yêu cầu xin gia nhập của bạn cho team {{MainObject}}."
+    ,"user_cancel_team_join_request":"{{Subjects}} đã hủy yêu cầu xin gia nhập vào team {{MainObject}}."
+    ,"user_agree_team_recruit_request":"{{Subjects}} đã đồng ý yêu cầu chiêu mộ của bạn vào team {{MainObject}}."
+    ,"user_disagree_team_recruit_request":"{{Subjects}} đã từ chối yêu cầu chiêu mộ của bạn cho team {{MainObject}}."
+    ,"user_cancel_team_recruit_request":"{{Subjects}} đã hủy yêu cầu chiêu mộ vào team {{MainObject}}."
+   
+    ,"user_join_team":"{{Subjects}} đã tham gia vào team {{MainObject}}."
+    ,"user_out_team":"{{Subjects}} đã tời khỏi team {{MainObject}}."
+    ,"change_name_team":"{{Subjects}} đã đổi thông tin team và tên từ {{SubObject}} thành {{MainObject}}."
+
+
 
 }

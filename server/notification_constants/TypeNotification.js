@@ -1,10 +1,74 @@
-module.exports = {
+const GroupChat={
     AddYouIntoGroupChat:{
-        Code:1,
+        Code:101,
         Message:"add_you_into_group_chat"
     },
     ChangeNameGroupChat:{
-        Code:2,
+        Code:102,
         Message:"change_name_group_chat"
     },
+}
+const Friend={
+    SendYouFriendRequest:{
+        Code:201,
+        Message:"send_you_friend_request"
+    },
+    BecomeFriend:{
+        Code:202,
+        Message:"become_friend"
+    },
+}
+const TeamRequest={
+    SendYouTeamRecruitRequest:{
+        Code:301,
+        Message:"send_you_team_recruit_request"
+    },
+    SendYouTeamJoinRequest:{
+        Code:302,
+        Message:"send_you_team_join_request"
+    },
+    UserAgreeTeamJoinRequest:{
+        Code:303,
+        Message:"user_agree_team_join_request"
+    },
+    UserDisagreeTeamJoinRequest:{
+        Code:304,
+        Message:"user_disagree_team_join_request"
+    },
+    UserCancelTeamJoinRequest:{
+        Code:305,
+        Message:"user_cancel_team_join_request"
+    },
+    UserAgreeTeamRecruitRequest:{
+        Code:306,
+        Message:"user_agree_team_recruit_request"
+    },
+    UserDisagreeTeamRecruitRequest:{
+        Code:307,
+        Message:"user_disagree_team_recruit_request"
+    },
+    UserCancelTeamRecruitRequest:{
+        Code:308,
+        Message:"user_cancel_team_recruit_request"
+    },
+}
+const Team={
+    UserJoinTeam:{
+        Code:401,
+        Message:"user_join_team"
+    },
+    UserOutTeam:{
+        Code:402,
+        Message:"user_out_team"
+    },
+    ChangeNameTeam:{
+        Code:403,
+        Message:"change_name_team"
+    },
+}
+module.exports = {
+    GroupChat:GroupChat,
+    Friend:Friend,
+    TeamRequest:TeamRequest,
+    Team:Team,
 }

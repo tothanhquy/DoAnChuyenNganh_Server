@@ -10,6 +10,8 @@ const Mail = require('../core/Mail');
 var Controller = require('./Controller');
 const TeamProfileResponse = require("../client_data_response_models/TeamProfile");
 const Path = require('path');
+const NotificationTool = require("./Tool/Notification");
+
 
 //containt the function with business logics  
 var TeamController = {  
@@ -374,6 +376,7 @@ var TeamController = {
     EditInfo: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idTeam = req.body.id;
 
@@ -394,8 +397,9 @@ var TeamController = {
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return; 
             }
-            
+            let oldName = editTeam.Name;
             editTeam.Name = req.body.name;
+            let newName = editTeam.Name;
             let nameValid = TeamModel.isValidName(editTeam.Name, req.lang);
             if (!nameValid.isValid) {
                 res.json(Controller.Fail(nameValid.error));
@@ -437,6 +441,22 @@ var TeamController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                if(oldName!=newName){
+                    //notification receive users
+                    let notificationReceiveUsers=[];
+                    notificationReceiveUsers=editTeam.Members.map(e=>e.toString());
+                    notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idAccount);
+
+                    NotificationTool.Team.changeNameTeam(req,
+                        notificationReceiveUsers,
+                        idAccount,
+                        nameAccount,
+                        oldName,
+                        idTeam,
+                        newName)
+                }
+                
+
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
@@ -452,6 +472,7 @@ var TeamController = {
     ExitTeam: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idTeam = req.body.id_team;
             let idNewLeader = req.body.id_new_leader;
@@ -481,7 +502,6 @@ var TeamController = {
                 editTeam.Members.splice(memberExistIndex, 1);
             } else {
                 //is leader
-
                 let memberExistIndex = editTeam.Members.indexOf(idNewLeader);
 
                 if (idAccount == idNewLeader||memberExistIndex==-1) {
@@ -503,6 +523,18 @@ var TeamController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                //notification
+                let notificationReceiveUsers=[];
+                notificationReceiveUsers=editTeam.Members.map(e=>e.toString());
+                notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idAccount);
+
+                NotificationTool.Team.userOutTeam(req,
+                    notificationReceiveUsers,
+                    idAccount,
+                    nameAccount,
+                    idTeam,
+                    editTeam.Name)
+
                 let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
@@ -611,6 +643,28 @@ var TeamController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                //notification
+                //get member name
+                resAction = await AccountModel.getDataById(idMember,req.lang); 
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(Message(req.lang,"member_unvalid")));
+                    return;
+                }else{
+                    nameMember=resAction.Name;
+
+                    let notificationReceiveUsers=[];
+                    notificationReceiveUsers=editTeam.Members.map(e=>e.toString());
+                    notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idMember);
+    
+                    NotificationTool.Team.userOutTeam(req,
+                        notificationReceiveUsers,
+                        idMember,
+                        nameMember,
+                        idTeam,
+                        editTeam.Name)
+                }
+                
+
                 let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
                 res.json(Controller.Success({ isComplete:true }));  
                 return;

@@ -5,5 +5,23 @@
     ,"add_you_into_group_chat":"{{Subjects}} added you into group chat {{SubObject}}."
     ,"change_name_group_chat":"{{Subjects}} changed name of group chat {{SubObject}} to {{MainObject}}."
 
+    ,"send_you_friend_request":"{{Subjects}} sent you a friend request."
+    ,"become_friend":"{{Subjects}} and you were became friend."
+
+    ,"send_you_team_recruit_request":"{{Subjects}} sent you a recruit request for team {{MainObject}}."
+    ,"send_you_team_join_request":"{{Subjects}} sent you a join request for team {{MainObject}}."
+    ,"user_agree_team_join_request":"{{Subjects}} agreed join request of you for team {{MainObject}}."
+    ,"user_disagree_team_join_request":"{{Subjects}} disagreed join request of you for team {{MainObject}}."
+    ,"user_cancel_team_join_request":"{{Subjects}} canceled join request for team {{MainObject}}."
+    ,"user_agree_team_recruit_request":"{{Subjects}} agreed recruit request of you for team {{MainObject}}."
+    ,"user_disagree_team_recruit_request":"{{Subjects}} disagreed recruit request of you for team {{MainObject}}."
+    ,"user_cancel_team_recruit_request":"{{Subjects}} canceled recruit request for team {{MainObject}}."
+
+    ,"user_join_team":"{{Subjects}} joined team {{MainObject}}."
+    ,"user_out_team":"{{Subjects}} exited team {{MainObject}}."
+    ,"change_name_team":"{{Subjects}} changed information of team and name from {{SubObject}} to {{MainObject}}."
+
+
+
 
 }

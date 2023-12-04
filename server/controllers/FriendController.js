@@ -5,6 +5,7 @@ var AccountModel = require('../models/AccountModel');
 var ChanelChatModel = require('../models/ChanelChatModel');  
 var FriendRequestModel = require('../models/FriendRequestModel');  
 var Controller = require('./Controller');
+const NotificationTool = require("./Tool/Notification");
 
 const GET_LIST_LIMIT_REQUESTS = 20;
 
@@ -44,6 +45,7 @@ var FriendController = {
     Create : async function(req,res){  
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let userReceiveId = req.body.user_receive_id;
             let content = req.body.content;
@@ -103,6 +105,13 @@ var FriendController = {
                     res.json(Controller.Fail(resAction.error));
                     return;
                 } else {
+                    NotificationTool.Friend.sendFriendRequest(
+                        req,
+                        receiveUser._id.toString(),
+                        resAction.data.id,
+                        idAccount,
+                        nameAccount);
+
                     res.json(Controller.Success({ isComplete:true, isFriend: false }));
                     return;
                 }
@@ -161,6 +170,19 @@ var FriendController = {
                         return;
                     }
                 }
+
+                //notification to friend
+                NotificationTool.Friend.becomeFriend(
+                    req,
+                    receiveUser._id.toString(),
+                    sendUser._id.toString(),
+                    sendUser.Name);
+                //notification to me
+                NotificationTool.Friend.becomeFriend(
+                    req,
+                    sendUser._id.toString(),
+                    receiveUser._id.toString(),
+                    receiveUser.Name);
                 
                 //delete old request
                 resAction = await FriendRequestModel.delete(req.lang, friendRequest._id);
@@ -409,6 +431,20 @@ var FriendController = {
                             return;
                         }
                     }
+
+                    //notification to me
+                    NotificationTool.Friend.becomeFriend(
+                        req,
+                        receiveUser._id.toString(),
+                        sendUser._id.toString(),
+                        sendUser.Name);
+                    //notification to friend
+                    NotificationTool.Friend.becomeFriend(
+                        req,
+                        sendUser._id.toString(),
+                        receiveUser._id.toString(),
+                        receiveUser.Name);
+
                     
                     //delete old request
                     resAction = await FriendRequestModel.delete(req.lang, queryRequest._id);

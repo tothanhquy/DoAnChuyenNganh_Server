@@ -11,11 +11,14 @@ module.exports.GrammarObject = GrammarObject;
 module.exports.generatesKey = GeneratesKey;
 module.exports.TypeNotification = TypeNotification;
 module.exports.getMessageByCode = function(languageMessage, code){
-    for(let key in TypeNotification){
-        if(TypeNotification[key].Code==code){
-            return Messages(languageMessage, TypeNotification[key].Message);
+    for(let keyParent in TypeNotification){
+        for(let keyChild in TypeNotification[keyParent]){
+            if(TypeNotification[keyParent][keyChild].Code==code){
+                return Messages(languageMessage, TypeNotification[keyParent][keyChild].Message);
+            }
         }
     }
+    
     return Messages(languageMessage, "default_message");
 }
 module.exports.getMessage = function(languageMessage, message){

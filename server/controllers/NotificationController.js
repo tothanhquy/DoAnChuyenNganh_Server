@@ -147,7 +147,8 @@ var NotificationController = {
                     queryNotification.Subjects = notification.Subjects;
                     queryNotification.SubjectCount = 1;
                 }else{
-                    queryNotification.Subjects = [notification.Subjects,...queryNotification.Subjects];
+                    notification.Subjects.push(...(queryNotification.Subjects))
+                    queryNotification.Subjects = notification.Subjects;
                     if(queryNotification.Subjects.length>MAXIMUM_ITEM_IN_SUBJECTS_FIELD){
                         queryNotification.Subjects.splice(MAXIMUM_ITEM_IN_SUBJECTS_FIELD);
                     }

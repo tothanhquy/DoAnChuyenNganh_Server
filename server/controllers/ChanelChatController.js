@@ -205,6 +205,7 @@ var ChanelChatController = {
     EditGroupChatName: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idChanelChat = req.body.id_chanel_chat;
             let newName = req.body.new_name;
@@ -254,10 +255,10 @@ var ChanelChatController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
-                NotificationTool.changeNameGroupChat(req,
+                NotificationTool.GroupChat.changeNameGroupChat(req,
                     notificationReceiveUsers,
-                    editChanelChat.GroupOwner._id.toString(),
-                    editChanelChat.GroupOwner.Name,
+                    idAccount,
+                    nameAccount,
                     oldName,
                     editChanelChat._id.toString(),
                     newName)
@@ -563,6 +564,8 @@ var ChanelChatController = {
     InsertMembers: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
+
             let id_members = JSON.parse(req.body.members)||[];
             let idChanelChat = req.body.id_chanel_chat;
 
@@ -631,11 +634,11 @@ var ChanelChatController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
-                NotificationTool.insertUsersToGroupChat(
+                NotificationTool.GroupChat.insertUsersToGroupChat(
                     req,
                     notificationReceiveUsers,
-                    editChanelChat.GroupOwner._id,
-                    editChanelChat.GroupOwner.Name,
+                    idAccount,
+                    nameAccount,
                     editChanelChat._id,
                     editChanelChat.Name);
 

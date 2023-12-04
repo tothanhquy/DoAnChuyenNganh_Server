@@ -10,6 +10,8 @@ const Mail = require('../core/Mail');
 var Controller = require('./Controller');
 const RequestResponse = require("../client_data_response_models/Request");
 const ChanelChatController = require("./ChanelChatController")
+const NotificationTool = require("./Tool/Notification");
+
 
 const GET_LIST_LIMIT_REQUESTS = 10;
 
@@ -19,8 +21,9 @@ var RequestController = {
     //http post, authen
     Create : async function(req,res){  
         try {  
-            console.log(req.body)
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
+
             let creator = req.body.creator;
 
             if (creator != "leader" && creator != "user") {
@@ -58,6 +61,9 @@ var RequestController = {
                 return;
             }
 
+            let teamName = queryTeam.Name;
+            let receiveUserNotificationId = null;
+
             if (creator == "leader") {
                 //check is leader
                 if (queryTeam.Leader.toString() != idAccount) {
@@ -71,6 +77,9 @@ var RequestController = {
                     res.json(Controller.Fail(Message(req.lang,"member_unvalid")));
                     return;
                 }
+                receiveUserNotificationId=userId;
+            }else{
+                receiveUserNotificationId=queryTeam.Leader.toString();
             }
             
             //check exist old member
@@ -115,6 +124,21 @@ var RequestController = {
                 res.json(Controller.Fail(resAction.error));
                 return;
             } else {
+                if(requestTypeCheck==RequestModelRequestType.Recruit){
+                    NotificationTool.TeamRequest.sendRecruitRequest(
+                        req,
+                        receiveUserNotificationId,
+                        idAccount,
+                        nameAccount,
+                        teamId,teamName);
+                }else{
+                    NotificationTool.TeamRequest.sendJoinRequest(
+                        req,
+                        receiveUserNotificationId,
+                        idAccount,
+                        nameAccount,
+                        teamId,teamName);
+                }
                 
                 res.json(Controller.Success({ isComplete:true }));
                 return;
@@ -335,6 +359,7 @@ var RequestController = {
     Update : async function(req,res){  
         try {  
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let viewer = req.body.viewer;
             let status = req.body.status;
@@ -348,39 +373,41 @@ var RequestController = {
                 return;
             }
 
-            let resAction = await RequestModel.getDataById(requestId,req.lang);
+            let resAction = await RequestModel.getDataByIdPopulateUser(requestId,req.lang);
             let editRequest = resAction.data;
             if (resAction.status == ModelResponse.ResStatus.Fail) {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
+
+            //team
+            let teamId = editRequest.Team.toString();
+            //get team
+            resAction = await TeamModel.getDataById(teamId,req.lang);
+            let editTeam = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+
+            let receiveUserNotificationId;
+            let teamName=editTeam.Name;
             
             if (viewer == "leader") {
-                //team
-                let teamId = req.body.team_id;
-                //check team exist
-                resAction = await TeamModel.getDataById(teamId,req.lang);
-                let queryTeam = resAction.data;
-                if (resAction.status == ModelResponse.ResStatus.Fail) {
-                    res.json(Controller.Fail(resAction.error));
-                    return;
-                }
+                receiveUserNotificationId=editRequest.User._id.toString();
+                
                 //check is leader
-                if (queryTeam.Leader.toString() != idAccount) {
+                if (editTeam.Leader.toString() != idAccount) {
                     //not leader
                     res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                     return; 
                 }
-                //check team has request
-                if (editRequest.Team.toString() != teamId) {
-                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
-                    return; 
-                }
             } else {
+                receiveUserNotificationId=editTeam.Leader.toString();
                 //user
                 //check user has request
                 
-                if (editRequest.User.toString() != idAccount) {
+                if (editRequest.User._id.toString() != idAccount) {
                     res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                     return; 
                 }
@@ -426,19 +453,15 @@ var RequestController = {
                 if (status == "disagree") {
                     editRequest.IsAgree = false;
                 } else {
-                    //get team when agree
-                    resAction = await TeamModel.getDataById(editRequest.Team,req.lang);
-                    let editTeam = resAction.data;
-                    if (resAction.status == ModelResponse.ResStatus.Fail) {
-                        res.json(Controller.Fail(resAction.error));
-                        return;
-                    }
                     //check exist member
                     let idMember;
+                    let nameMember;
                     if (viewer == "leader") {
-                        idMember = editRequest.User.toString();
+                        idMember = editRequest.User._id.toString();
+                        nameMember = editRequest.User.Name;
                     } else {
                         idMember = idAccount;
+                        nameMember = nameAccount;
                     }
                     let memberExistIndex = editTeam.Members.indexOf(idMember);
                     if (memberExistIndex != -1) {
@@ -447,6 +470,8 @@ var RequestController = {
                         // res.json(Controller.Fail(Message(req.lang,"was_a_member")));
                         // return;
                     } else {
+                        let receiveUserNotificationJoinTeamIds=editTeam.Members.map(e=>e.toString());
+                        
                         editTeam.Members.push(idMember);
                         //update team
                         resAction = await TeamModel.updateTeam(editTeam._id, editTeam,req.lang);
@@ -455,7 +480,11 @@ var RequestController = {
                             return;
                         }
                         let updateChanelChat = await ChanelChatController.updateMembersOfTeamChanelChat(editTeam.ChanelChat);
-                        console.log(updateChanelChat)
+                        
+                        //notification
+                        NotificationTool.Team.userJoinTeam(
+                            req,receiveUserNotificationJoinTeamIds,idMember,
+                            nameMember,teamId,teamName);
                     }
                     editRequest.IsAgree = true;
                 }
@@ -473,6 +502,51 @@ var RequestController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             }
+
+            //notification
+            if(editRequest.RequestType==RequestModelRequestType.Join){
+                if(status=="agree"){
+                    NotificationTool.TeamRequest.responseRequest(
+                        req,receiveUserNotificationId,idAccount,
+                        nameAccount,teamId,teamName,
+                        NotificationTool.TeamRequest.RequestType.Join,
+                        NotificationTool.TeamRequest.ResponseStatus.Agree);
+                }else if(status=="disagree"){
+                    NotificationTool.TeamRequest.responseRequest(
+                        req,receiveUserNotificationId,idAccount,
+                        nameAccount,teamId,teamName,
+                        NotificationTool.TeamRequest.RequestType.Join,
+                        NotificationTool.TeamRequest.ResponseStatus.Disagree);
+                }else if(status=="cancel"){
+                    NotificationTool.TeamRequest.responseRequest(
+                        req,receiveUserNotificationId,idAccount,
+                        nameAccount,teamId,teamName,
+                        NotificationTool.TeamRequest.RequestType.Join,
+                        NotificationTool.TeamRequest.ResponseStatus.Cancel);
+                }
+            }else{
+                if(status=="agree"){
+                    NotificationTool.TeamRequest.responseRequest(
+                        req,receiveUserNotificationId,idAccount,
+                        nameAccount,teamId,teamName,
+                        NotificationTool.TeamRequest.RequestType.Recruit,
+                        NotificationTool.TeamRequest.ResponseStatus.Agree);
+                }else if(status=="disagree"){
+                    NotificationTool.TeamRequest.responseRequest(
+                        req,receiveUserNotificationId,idAccount,
+                        nameAccount,teamId,teamName,
+                        NotificationTool.TeamRequest.RequestType.Recruit,
+                        NotificationTool.TeamRequest.ResponseStatus.Disagree);
+                }else if(status=="cancel"){
+                    NotificationTool.TeamRequest.responseRequest(
+                        req,receiveUserNotificationId,idAccount,
+                        nameAccount,teamId,teamName,
+                        NotificationTool.TeamRequest.RequestType.Recruit,
+                        NotificationTool.TeamRequest.ResponseStatus.Cancel);
+                }
+            }
+
+
             res.json(Controller.Success({isComplete:true}));   
         }  
         catch (error) {  
