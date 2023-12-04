@@ -647,10 +647,9 @@ var TeamController = {
                 //get member name
                 resAction = await AccountModel.getDataById(idMember,req.lang); 
                 if (resAction.status == ModelResponse.ResStatus.Fail) {
-                    res.json(Controller.Fail(Message(req.lang,"member_unvalid")));
-                    return;
+                    // res.json(Controller.Fail(Message(req.lang,"member_unvalid")));
                 }else{
-                    nameMember=resAction.Name;
+                    nameMember=resAction.data.Name;
 
                     let notificationReceiveUsers=[];
                     notificationReceiveUsers=editTeam.Members.map(e=>e.toString());

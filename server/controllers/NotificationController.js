@@ -145,7 +145,7 @@ var NotificationController = {
                 //update
                 if(isOnceSubject===true){
                     queryNotification.Subjects = notification.Subjects;
-                    queryNotification.SubjectCount = 1;
+                    queryNotification.SubjectCount = queryNotification.Subjects.length;
                 }else{
                     notification.Subjects.push(...(queryNotification.Subjects))
                     queryNotification.Subjects = notification.Subjects;

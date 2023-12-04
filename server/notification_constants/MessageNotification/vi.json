@@ -21,6 +21,19 @@
     ,"user_out_team":"{{Subjects}} đã tời khỏi team {{MainObject}}."
     ,"change_name_team":"{{Subjects}} đã đổi thông tin team và tên từ {{SubObject}} thành {{MainObject}}."
 
+    ,"user_join_project":"{{Subjects}} đã tham gia vào dự án {{MainObject}} với vai trò {{SubObject}}."
+    ,"user_out_project":"{{Subjects}} đã tời khỏi dự án {{MainObject}}."
+    ,"change_name_project":"{{Subjects}} đã đổi thông tin dự án và tên từ {{SubObject}} thành {{MainObject}}."
+    ,"user_change_role_project":"{{Subjects}} đã đảm nhiệm vai trò {{SubObject}} của dự án {{MainObject}}."
+    ,"send_you_inviting_request_project":"{{Subjects}} đã gửi bạn một yêu cầu mời tham gia vào dự án {{MainObject}}."
+    ,"user_agree_inviting_request_project":"{{Subjects}} đã đồng ý yêu cầu mời tham gia của bạn vào dự án {{MainObject}}."
+    ,"user_disagree_inviting_request_project":"{{Subjects}} đã từ chối yêu cầu mời tham gia của bạn vào dự án {{MainObject}}."
+    ,"user_cancel_inviting_request_project":"{{Subjects}} đã hủy yêu cầu yêu cầu mời tham gia vào dự án {{MainObject}}."
+    
+    ,"project_create_new_post":"Dự án {{Subjects}} đã thêm bài viết mới."
+    ,"users_like_post":"Ai đó đã thích dự án {{MainObject}}."
+    ,"users_comment_post":"Ai đó đã bình luận dự án {{MainObject}}."
 
+    
 
 }

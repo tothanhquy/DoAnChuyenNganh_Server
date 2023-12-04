@@ -65,6 +65,7 @@ var MessageController = {
                     resObject.items.push(new SearchResponse.SearchItem(element._id.toString(),element.Name,element.Avatar,SearchResponse.ObjectType.Team));
                 });
             }else{
+                //project
                 let objectsByTagsId = tagsQuery.map(e=>e._id.toString());
                 tagsQuery.forEach(element => {
                     resObject.items.push(new SearchResponse.SearchItem(element._id.toString(),element.Name,element.Avatar,SearchResponse.ObjectType.Project));

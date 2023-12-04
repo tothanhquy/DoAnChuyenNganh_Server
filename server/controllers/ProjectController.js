@@ -10,6 +10,7 @@ const Mail = require('../core/Mail');
 var Controller = require('./Controller');
 const ProjectResponse = require("../client_data_response_models/Project");
 const Path = require('path');
+const NotificationTool = require("./Tool/Notification");
 
 //containt the function with business logics  
 var ProjectController = {  
@@ -313,6 +314,7 @@ var ProjectController = {
     EditBasicInfo: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idProject = req.body.id;
 
@@ -333,8 +335,9 @@ var ProjectController = {
                 res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                 return; 
             }
-            
+            let oldName = editProject.Name;
             editProject.Name = req.body.name;
+            let newName = editProject.Name;
             let nameValid = ProjectModel.isValidName(editProject.Name, req.lang);
             if (!nameValid.isValid) {
                 res.json(Controller.Fail(nameValid.error));
@@ -370,6 +373,21 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                if(oldName!=newName){
+                    //notification receive users
+                    let notificationReceiveUsers=[];
+                    notificationReceiveUsers=editProject.Members.map(e=>e.User.toString());
+                    notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idAccount);
+
+                    NotificationTool.Project.changeNameProject(req,
+                        notificationReceiveUsers,
+                        idAccount,
+                        nameAccount,
+                        oldName,
+                        idProject,
+                        newName)
+                }
+
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
@@ -734,6 +752,7 @@ var ProjectController = {
     ExitProject: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idProject = req.body.id_project;
             let idNewLeader = req.body.id_new_leader;
@@ -785,6 +804,17 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                let notificationReceiveUsers=[];
+                notificationReceiveUsers=editProject.Members.map(e=>e.User.toString());
+                notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idAccount);
+
+                NotificationTool.Project.userOutProject(req,
+                    notificationReceiveUsers,
+                    idAccount,
+                    nameAccount,
+                    idProject,
+                    editProject.Name)
+
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
@@ -922,11 +952,32 @@ var ProjectController = {
                 return;
             }
 
-            //delate member
+            //delete member
             let resUpdateMember = await updateMember(req.lang,idProject,idMember,"",true);
             if(resUpdateMember.status==Controller.ResStatus.Fail){
                 res.json(Controller.Fail(resUpdateMember.error));
+                return;
             }
+            //notification
+            //get member name
+            resAction = await AccountModel.getDataById(idMember,req.lang); 
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                // res.json(Controller.Fail(Message(req.lang,"member_unvalid")));
+            }else{
+                nameMember=resAction.data.Name;
+
+                let notificationReceiveUsers=[];
+                notificationReceiveUsers=editProject.Members.map(e=>e.User.toString());
+                notificationReceiveUsers=notificationReceiveUsers.filter(e=>e!=idMember);
+
+                NotificationTool.Project.userOutProject(req,
+                    notificationReceiveUsers,
+                    idMember,
+                    nameMember,
+                    idProject,
+                    editProject.Name)
+            }
+            
             res.json(Controller.Success({ isComplete:true }));  
             return;
         }  
@@ -973,6 +1024,21 @@ var ProjectController = {
                 res.json(Controller.Fail(resUpdateMember.error));
                 return;
             }
+
+            //notification
+            //get member name
+            resAction = await AccountModel.getDataById(idMember,req.lang); 
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                // res.json(Controller.Fail(Message(req.lang,"member_unvalid")));
+            }else{
+                nameMember=resAction.data.Name;
+                let receiveUserNotificationJoinTeamIds=editProject.Members.map(e=>e.User.toString());
+                receiveUserNotificationJoinTeamIds=receiveUserNotificationJoinTeamIds.filter(e=>e!=idMember);
+                NotificationTool.Project.userChangeRole(
+                    req,receiveUserNotificationJoinTeamIds,idMember,
+                    nameMember,role,idProject,editProject.Name);
+            }
+            
             res.json(Controller.Success({ isComplete:true }));  
             return;
         }  
@@ -986,6 +1052,7 @@ var ProjectController = {
     InviteNewMember: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idProject = req.body.id_project;
             let emailNewMember = req.body.email_new_member;
@@ -1024,6 +1091,7 @@ var ProjectController = {
                 return;
             }
             let idNewMember = resAction.data._id;
+            let nameNewMember = resAction.data.Name;
 
             let index = editProject.InvitingMembers.findIndex(e=>e.User.toString()==idNewMember);
             if(index==-1){
@@ -1046,6 +1114,13 @@ var ProjectController = {
                 res.json(Controller.Fail(resAction.error));   
                 return;
             } else {
+                NotificationTool.Project.sendInvitingRequest(
+                    req,
+                    idNewMember,
+                    idAccount,
+                    nameAccount,
+                    idProject,editProject.Name);
+
                 res.json(Controller.Success({ isComplete:true }));  
                 return;
             }
@@ -1059,6 +1134,7 @@ var ProjectController = {
     UpdateInvitingMember: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let idProject = req.body.id_project;
             let idInvitingMember = req.body.id_inviting_member;
@@ -1082,11 +1158,13 @@ var ProjectController = {
                 return;
             }
 
+            let receiveUserNotificationId;
+
             //check permission
             if(status=="cancel"){
+                receiveUserNotificationId=idInvitingMember;
                 if (idInvitingMember == undefined || idInvitingMember == "") {
                     res.json(Controller.Fail(Message(req.lang, "system_error")));
-                    console.log(3);
                     return; 
                 }
                 if (editProject.Leader.toString() != idAccount) {
@@ -1096,9 +1174,11 @@ var ProjectController = {
                 }
             }else if(status=="agree"){
                 idInvitingMember = idAccount;
+                receiveUserNotificationId=editProject.Leader.toString();
             }else {
                 //disagree
                 idInvitingMember = idAccount;
+                receiveUserNotificationId=editProject.Leader.toString();
             }
 
             let indexDelete = editProject.InvitingMembers.findIndex(e=>e.User.toString()==idInvitingMember);
@@ -1114,7 +1194,15 @@ var ProjectController = {
                 let resUpdateMember = await updateMember(req.lang,idProject,idInvitingMember,editProject.InvitingMembers[indexDelete].Role,false);
                 if(resUpdateMember.status==Controller.ResStatus.Fail){
                     res.json(Controller.Fail(resUpdateMember.error));
+                    return;
                 }
+
+                //notification
+                let receiveUserNotificationJoinTeamIds=editProject.Members.map(e=>e.User.toString());
+                NotificationTool.Project.userJoinProject(
+                    req,receiveUserNotificationJoinTeamIds,idAccount,
+                    nameAccount,editProject.InvitingMembers[indexDelete].Role,idProject,editProject.Name);
+
             }
 
             if(indexDelete!=-1){
@@ -1129,6 +1217,22 @@ var ProjectController = {
                     res.json(Controller.Fail(resAction.error));   
                     return;
                 }
+            }
+            if(status=="agree"){
+                NotificationTool.Project.responseRequest(
+                    req,receiveUserNotificationId,idAccount,
+                    nameAccount,idProject,editProject.Name,
+                    NotificationTool.Project.ResponseStatus.Agree);
+            }else if(status=="disagree"){
+                NotificationTool.Project.responseRequest(
+                    req,receiveUserNotificationId,idAccount,
+                    nameAccount,idProject,editProject.Name,
+                    NotificationTool.Project.ResponseStatus.Disagree);
+            }else if(status=="cancel"){
+                NotificationTool.Project.responseRequest(
+                    req,receiveUserNotificationId,idAccount,
+                    nameAccount,idProject,editProject.Name,
+                    NotificationTool.Project.ResponseStatus.Cancel);
             }
             
             res.json(Controller.Success({ isComplete:true }));  

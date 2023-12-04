@@ -4,5 +4,7 @@ module.exports = {
     Request:"request",
     ChanelChat:"chanel_chat",
     None:"none",
+    Project:"project",
+    Post:"post",
 
 }

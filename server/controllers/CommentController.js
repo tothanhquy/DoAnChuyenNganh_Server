@@ -7,6 +7,8 @@ var Auth = require('../core/Auth');
 var PostController = require('./PostController');
 const CommentResponse = require("../client_data_response_models/Comment");
 const NegativeWord = require('./Tool/NegativeWord');
+const NotificationTool = require("./Tool/Notification");
+
 
 const LIMIT_COMMENTS_PER_RESQUEST = 6;
 const USER_INTERACT_REQUEST_STATUS={
@@ -87,6 +89,8 @@ var CommentController = {
     CreateComment: async (req,res) => {
         try {
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
+
             let idPost = req.body.id_post;
             let idReply = req.body.id_reply;
             let content = req.body.content;
@@ -194,6 +198,12 @@ var CommentController = {
                 false,
                 true,
             );
+            //notification
+            let receiveUserNotificationIds=editPost.UsersFollow.map(e=>e.User.toString());
+            receiveUserNotificationIds=receiveUserNotificationIds.filter(e=>e!=idAccount);
+            NotificationTool.Post.usersCommentPost(
+                req,receiveUserNotificationIds,
+                idAccount,nameAccount,editPost._id.toString(),editPost.Content);
 
             res.json(Controller.Success(newCommentRes));  
         }  

@@ -11,6 +11,7 @@ const Mail = require('../core/Mail');
 var Controller = require('./Controller');
 const PostResponse = require("../client_data_response_models/Post");
 const Path = require('path');
+const NotificationTool = require("./Tool/Notification");
 
 const GET_LIST_LIMIT_POSTS = 20;
 
@@ -31,8 +32,7 @@ var PostController = {
     Create : async function(req,res){  
         let imagesPathDeleteCaseOfError = [];
         let fullPath = "";
-        try {  
-            console.log(req.body)
+        try {
             let idAccount = req.user.id;
             let creatorType = req.body.creator_type;
             let creatorId = req.body.creator_id;
@@ -84,6 +84,8 @@ var PostController = {
                 }
             });
 
+            let projectName;
+            let receiveUserNotificationIds;
             //check is leader
             if (creatorType == PostModel.AuthorType.Team) {
                 //check team exist
@@ -113,6 +115,10 @@ var PostController = {
                     res.json(Controller.Fail(Message(req.lang, 'permissions_denied_action')));
                     return;
                 }
+                projectName = queryProject.Name;
+                receiveUserNotificationIds=queryProject.UserFollows.map(e=>e.toString());
+                receiveUserNotificationIds=receiveUserNotificationIds.filter(e=>e!=idAccount);
+                    
             }else{
 
             }
@@ -176,6 +182,13 @@ var PostController = {
                 });
                 return;
             } else {
+                //notification
+                if (creatorType == PostModel.AuthorType.Project){
+                    NotificationTool.Post.projectCreateNewPost(
+                        req,receiveUserNotificationIds,
+                        resAction.data.id,creatorId,projectName);
+                }
+
                 res.json(Controller.Success({ newPostId:resAction.data.id,isComplete:true,uploadImageResult:""+validUploadedImageNumber+"/"+uploadedImageCount }));
                 return;
             }
@@ -484,6 +497,7 @@ var PostController = {
     UserInterRact : async function(req,res){  
         try {  
             let idAccount = req.user.id;
+            let nameAccount = req.user.userData.name;
 
             let status = req.body.status;
             let postId = req.body.post_id;
@@ -504,6 +518,8 @@ var PostController = {
                 res.json(Controller.Fail(resAction.error));
                 return;
             }
+
+            
 
             let updateFields=null;
             let resObject = new PostResponse.PostUpdateInteractResponse();
@@ -566,6 +582,16 @@ var PostController = {
                 return;
             }
             resObject.isComplete=true;
+
+            //notification
+            if(resObject.status == PostResponse.PostUpdateInteractResponseStatus.Liked){
+                let receiveUserNotificationIds=editPost.UsersFollow.map(e=>e.User.toString());
+                receiveUserNotificationIds=receiveUserNotificationIds.filter(e=>e!=idAccount);
+                NotificationTool.Post.usersLikePost(
+                    req,receiveUserNotificationIds,
+                    idAccount,nameAccount,postId,editPost.Content);
+            }
+
             res.json(Controller.Success(resObject));   
         }  
         catch (error) {  
@@ -849,14 +875,14 @@ var PostController = {
                     res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                     return;
                 }
-            }else if (editPost.AuthorType == GET_LIST_FILTER.Project) {
+            }else if (editPost.AuthorType == PostModel.AuthorType.Project) {
                 //check is leader
                 if (editPost.Project.Leader.toString() != idAccount) {
                     //not owner
                     res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
                     return;
                 }
-            }else if (editPost.AuthorType == GET_LIST_FILTER.User) {
+            }else if (editPost.AuthorType == PostModel.AuthorType.User) {
                 //check is mine
                 if (editPost.User._id.toString() != idAccount) {
                     //not owner
@@ -972,7 +998,64 @@ var PostController = {
             console.log(err);
             return false;
         }
-    }
+    },
+
+    //http post, authen
+    OwnerDelete : async function(req,res){ 
+        try {  
+            let idAccount = req.user.id;
+
+            let postId = req.body.post_id;
+
+            if (postId == undefined || postId == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await PostModel.getDataById(postId,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));
+                return;
+            }
+            let editPost = resAction.data.toObject();
+
+            //check permission
+            if (editPost.AuthorType == PostModel.AuthorType.Team) {
+                //check is leader
+                if (editPost.Team.Leader.toString() != idAccount) {
+                    //not owner
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+            }else if (editPost.AuthorType == PostModel.AuthorType.Project) {
+                //check is leader
+                if (editPost.Project.Leader.toString() != idAccount) {
+                    //not owner
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+            }else if (editPost.AuthorType == PostModel.AuthorType.User) {
+                //check is mine
+                if (editPost.User._id.toString() != idAccount) {
+                    //not owner
+                    res.json(Controller.Fail(Message(req.lang,'permissions_denied_action')));
+                    return;
+                }
+            }
+
+            //delete post
+            resAction = await PostModel.deletePost(postId,req.lang);
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error)); 
+                return;
+            }
+            res.json(Controller.Success({isComplete:true}));   
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
 
 }  
   

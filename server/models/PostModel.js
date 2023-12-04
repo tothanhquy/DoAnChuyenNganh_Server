@@ -162,6 +162,18 @@ module.exports.getPosts = async (conditions,languageMessage)=>{
         return ModelResponse.Fail(Message(languageMessage,"system_error"));
     } 
 }
+module.exports.deletePost = async (id, languageMessage) => {  
+    try {
+        let resAction = await PostModel.deleteOne({ _id: id });
+        if (resAction.deletedCount == 0) {
+            return ModelResponse.Fail(Message(languageMessage,"post_not_exist"));
+        } else {
+            return ModelResponse.Success({isComplete: true});
+        }
+    } catch (err) {
+        return ModelResponse.Fail(Message(languageMessage,"system_error"));
+    }
+}
 // module.exports.getPostsPopulateLimit = async (conditions,populateTeam,populateAccount,limit,languageMessage)=>{
 //     try {
 //         let resAction = await PostModel.find(conditions).sort({PostTime:-1}).populate(populateTeam).populate(populateAccount).limit(limit);

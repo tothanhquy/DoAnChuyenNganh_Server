@@ -11,6 +11,15 @@ const Account={
 }
 const Team={
     Details:(id)=>"team/details/"+id,
+    Members:(id)=>"team/members/"+id,
+}
+const Project={
+    Details:(id)=>"project/details/"+id,
+    Members:(id)=>"project/members/"+id,
+    RequestsOfUser:()=>"project/request_of_user",
+}
+const Post={
+    Details:(id)=>"post/details/"+id,
 }
 // const TeamRequest={
 //     Details:(id)=>"TeamRequest/details/"+id,
@@ -20,6 +29,8 @@ module.exports = {
     Friend:Friend,
     Account:Account,
     Team:Team,
+    Project:Project,
+    Post:Post,
     // TeamRequest:TeamRequest,
 
 }

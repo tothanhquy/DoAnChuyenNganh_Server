@@ -21,7 +21,17 @@
     ,"user_out_team":"{{Subjects}} exited team {{MainObject}}."
     ,"change_name_team":"{{Subjects}} changed information of team and name from {{SubObject}} to {{MainObject}}."
 
-
-
+    ,"user_join_project":"{{Subjects}} joined project {{MainObject}} with role {{SubObject}}."
+    ,"user_out_project":"{{Subjects}} exited project {{MainObject}}."
+    ,"change_name_project":"{{Subjects}} changed information of project and name from {{SubObject}} to {{MainObject}}."
+    ,"user_change_role_project":"{{Subjects}} taked on the role {{SubObject}} of {{MainObject}}."
+    ,"send_you_inviting_request_project":"{{Subjects}} sent you a inviting request for project {{MainObject}}."
+    ,"user_agree_inviting_request_project":"{{Subjects}} agreed inviting request of you for project {{MainObject}}."
+    ,"user_disagree_inviting_request_project":"{{Subjects}} disagreed inviting request of you for project {{MainObject}}."
+    ,"user_cancel_inviting_request_project":"{{Subjects}} canceled inviting request for project {{MainObject}}."
+    
+    ,"project_create_new_post":"Project {{Subjects}} created a new post."
+    ,"users_like_post":"Someone liked post {{MainObject}}."
+    ,"users_comment_post":"Someone commented post {{MainObject}}."
 
 }

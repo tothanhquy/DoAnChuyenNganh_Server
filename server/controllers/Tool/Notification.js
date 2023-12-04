@@ -246,7 +246,7 @@ const Team={
                     notification.CreatedAt = Date.now();
                     notification.TypeCode = NotificationContant.TypeNotification.Team.UserJoinTeam.Code;
                     notification.Key = NotificationContant.generatesKey(notification.TypeCode,teamId);
-                    notification.Direction = NotificationContant.DirectLink.Team.Details(teamId);
+                    notification.Direction = NotificationContant.DirectLink.Team.Members(teamId);
                     notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
                     notification.SubjectCount = 1;
                     notification.MainObject = NotificationModel.getNotificationObjectAsObject(teamId,teamName,NotificationContant.TypeObject.Team);
@@ -273,7 +273,7 @@ const Team={
                     notification.CreatedAt = Date.now();
                     notification.TypeCode = NotificationContant.TypeNotification.Team.UserOutTeam.Code;
                     notification.Key = NotificationContant.generatesKey(notification.TypeCode,teamId);
-                    notification.Direction = NotificationContant.DirectLink.Team.Details(teamId);
+                    notification.Direction = NotificationContant.DirectLink.Team.Members(teamId);
                     notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
                     notification.SubjectCount = 1;
                     notification.MainObject = NotificationModel.getNotificationObjectAsObject(teamId,teamName,NotificationContant.TypeObject.Team);
@@ -316,11 +316,279 @@ const Team={
             }
     }
 }
+const Project={
+    userJoinProject: async (
+        req, 
+        receiveIdUsers, 
+        acctionUserId, 
+        acctionUserName,
+        acctionUserRoleOfProject,
+        projectId, 
+        projectName)=>{
+            try{
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.UserJoinProject.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,projectId+"_"+acctionUserId);
+                    notification.Direction = NotificationContant.DirectLink.Project.Members(projectId);
+                    notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
+                    notification.SubjectCount = 1;
+                    notification.MainObject = NotificationModel.getNotificationObjectAsObject(projectId,projectName,NotificationContant.TypeObject.Project);
+                    notification.SubObject = NotificationModel.getNotificationObjectAsObject("",acctionUserRoleOfProject,NotificationContant.TypeObject.None);
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,true);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    userChangeRole: async (
+        req, 
+        receiveIdUsers, 
+        acctionUserId, 
+        acctionUserName,
+        acctionUserRoleOfProject,
+        projectId, 
+        projectName)=>{
+            try{
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.UserChangeRole.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,projectId+"_"+acctionUserId);
+                    notification.Direction = NotificationContant.DirectLink.Project.Members(projectId);
+                    notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
+                    notification.SubjectCount = 1;
+                    notification.MainObject = NotificationModel.getNotificationObjectAsObject(projectId,projectName,NotificationContant.TypeObject.Project);
+                    notification.SubObject = NotificationModel.getNotificationObjectAsObject("",acctionUserRoleOfProject,NotificationContant.TypeObject.None);
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,true);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    userOutProject: async (
+        req, 
+        receiveIdUsers, 
+        acctionUserId, 
+        acctionUserName,
+        projectId, 
+        projectName)=>{
+            try{
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.UserOutProject.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,projectId);
+                    notification.Direction = NotificationContant.DirectLink.Project.Members(projectId);
+                    notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
+                    notification.SubjectCount = 1;
+                    notification.MainObject = NotificationModel.getNotificationObjectAsObject(projectId,projectName,NotificationContant.TypeObject.Project);
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,false);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    changeNameProject: async (
+        req, 
+        receiveIdUsers,
+        acctionUserId, 
+        acctionUserName, 
+        oldNameProject, 
+        idProject, 
+        newNameProject)=>{
+            try{
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.ChangeNameProject.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,idProject);
+                    notification.Direction = NotificationContant.DirectLink.Project.Details(idProject);
+                    notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
+                    notification.SubjectCount = 1;
+                    notification.MainObject = NotificationModel.getNotificationObjectAsObject(idProject,newNameProject,NotificationContant.TypeObject.Project);
+                    notification.SubObject = NotificationModel.getNotificationObjectAsObject("",oldNameProject,NotificationContant.TypeObject.None);
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,true);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    sendInvitingRequest: async (
+        req, 
+        receiveUserId,
+        sendUserId,
+        sendUserName,
+        projectId,
+        projectName)=>{
+            try{
+                let notification = new NotificationModel.getNotificationAsObject();
+                notification.ReceiveUser = receiveUserId;
+                notification.CreatedAt = Date.now();
+                notification.TypeCode = NotificationContant.TypeNotification.Project.SendYouInvitingRequest.Code;
+                notification.Key = NotificationContant.generatesKey(notification.TypeCode,projectId);
+                notification.Direction = NotificationContant.DirectLink.Project.RequestsOfUser();
+                notification.Subjects = [NotificationModel.getNotificationObjectAsObject(sendUserId,sendUserName,NotificationContant.TypeObject.Account)];
+                notification.SubjectCount = 1;
+                notification.MainObject = NotificationModel.getNotificationObjectAsObject(projectId,projectName,NotificationContant.TypeObject.Project);
+                //add
+                let res = await NotificationController.createOrUpdateNotification(req, notification,true);
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    ResponseStatus:{
+        Agree:"agree",
+        Disagree:"disagree",
+        Cancel:"cancel",
+    },
+    responseRequest: async (
+        req, 
+        receiveUserId,
+        sendUserId,
+        sendUserName,
+        projectId,
+        projectName,
+        responseStatus)=>{
+            try{
+                let notification = new NotificationModel.getNotificationAsObject();
+                notification.ReceiveUser = receiveUserId;
+                notification.CreatedAt = Date.now();
+                if(responseStatus==ProjectResponseStatus.Agree){
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.UserAgreeInvitingRequest.Code;
+                }else if(responseStatus==ProjectResponseStatus.Disagree){
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.UserDisagreeInvitingRequest.Code;
+                }else {
+                    notification.TypeCode = NotificationContant.TypeNotification.Project.UserCancelInvitingRequest.Code;
+                }
+                notification.Key = NotificationContant.generatesKey(notification.TypeCode,projectId);
+                notification.Subjects = [NotificationModel.getNotificationObjectAsObject(sendUserId,sendUserName,NotificationContant.TypeObject.Account)];
+                notification.SubjectCount = 1;
+                notification.MainObject = NotificationModel.getNotificationObjectAsObject(projectId,projectName,NotificationContant.TypeObject.Project);
+                //add
+                let res = await NotificationController.createOrUpdateNotification(req, notification,false);
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+}
+const ProjectResponseStatus = Project.ResponseStatus;
+
+const Post={
+    projectCreateNewPost: async (
+        req, 
+        receiveIdUsers, 
+        newPostId,
+        projectId, 
+        projectName)=>{
+            try{
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Post.ProjectCreateNewPost.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,projectId);
+                    notification.Direction = NotificationContant.DirectLink.Post.Details(newPostId);
+                    notification.Subjects = [NotificationModel.getNotificationObjectAsObject(projectId,projectName,NotificationContant.TypeObject.Project)];
+                    notification.SubjectCount = 1;
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,true);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    usersLikePost: async (
+        req, 
+        receiveIdUsers,
+        acctionUserId, 
+        acctionUserName,
+        postId, 
+        postContent)=>{
+            try{
+                if(postContent.length>100){postContent=postContent.substring(0,100);}
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Post.UsersLikePost.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,postId);
+                    notification.Direction = NotificationContant.DirectLink.Post.Details(postId);
+                    // notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
+                    // notification.SubjectCount = 1;
+                    notification.MainObject = NotificationModel.getNotificationObjectAsObject(postId,postContent,NotificationContant.TypeObject.Post);
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,false);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    },
+    usersCommentPost: async (
+        req, 
+        receiveIdUsers,
+        acctionUserId, 
+        acctionUserName,
+        postId, 
+        postContent)=>{
+            try{
+                if(postContent.length>100){postContent=postContent.substring(0,100);}
+
+                for(let e in receiveIdUsers){
+                    let notification = new NotificationModel.getNotificationAsObject();
+                    notification.ReceiveUser = receiveIdUsers[e];
+                    notification.CreatedAt = Date.now();
+                    notification.TypeCode = NotificationContant.TypeNotification.Post.UsersCommentPost.Code;
+                    notification.Key = NotificationContant.generatesKey(notification.TypeCode,postId);
+                    notification.Direction = NotificationContant.DirectLink.Post.Details(postId);
+                    // notification.Subjects = [NotificationModel.getNotificationObjectAsObject(acctionUserId,acctionUserName,NotificationContant.TypeObject.Account)];
+                    // notification.SubjectCount = 1;
+                    notification.MainObject = NotificationModel.getNotificationObjectAsObject(postId,postContent,NotificationContant.TypeObject.Post);
+                    //add
+                    let res = await NotificationController.createOrUpdateNotification(req, notification,false);
+                };
+                return true;
+            }catch(err){
+                console.log(err);
+                return false;
+            }
+    }
+}
+
+
+
 const ToolsOfNotification = {
     GroupChat:GroupChat,
     Friend:Friend,
     TeamRequest:TeamRequest,
     Team:Team,
+    Project:Project,
+    Post:Post,
 
 }
 module.exports = ToolsOfNotification;

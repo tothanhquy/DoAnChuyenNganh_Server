@@ -66,9 +66,59 @@ const Team={
         Message:"change_name_team"
     },
 }
+const Project={
+    UserJoinProject:{
+        Code:501,
+        Message:"user_join_project"
+    },
+    UserOutProject:{
+        Code:502,
+        Message:"user_out_project"
+    },
+    ChangeNameProject:{
+        Code:503,
+        Message:"change_name_project"
+    },
+    UserChangeRole:{
+        Code:504,
+        Message:"user_change_role_project"
+    },
+    SendYouInvitingRequest:{
+        Code:505,
+        Message:"send_you_inviting_request_project"
+    },
+    UserAgreeInvitingRequest:{
+        Code:506,
+        Message:"user_agree_inviting_request_project"
+    },
+    UserDisagreeInvitingRequest:{
+        Code:507,
+        Message:"user_disagree_inviting_request_project"
+    },
+    UserCancelInvitingRequest:{
+        Code:508,
+        Message:"user_cancel_inviting_request_project"
+    },
+}
+const Post={
+    ProjectCreateNewPost:{
+        Code:601,
+        Message:"project_create_new_post"
+    },
+    UsersLikePost:{
+        Code:602,
+        Message:"users_like_post"
+    },
+    UsersCommentPost:{
+        Code:603,
+        Message:"users_comment_post"
+    },
+}
 module.exports = {
     GroupChat:GroupChat,
     Friend:Friend,
     TeamRequest:TeamRequest,
     Team:Team,
+    Project:Project,
+    Post:Post,
 }

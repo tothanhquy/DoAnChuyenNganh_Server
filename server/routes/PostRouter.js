@@ -8,6 +8,7 @@ router.get('/GetList',PostController.GetList);
 router.post('/UserInterRact', Auth.AuthenUser, PostController.UserInterRact);
 router.get('/Details', PostController.Details);
 router.post('/OwnerUpdate', Auth.AuthenUser, PostController.OwnerUpdate);
+router.post('/OwnerDelete', Auth.AuthenUser, PostController.OwnerDelete);
 router.get('/OwnerGetEditInfo', Auth.AuthenUser, PostController.OwnerGetEditInfo);
 
 module.exports = router;

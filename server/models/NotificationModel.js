@@ -109,6 +109,7 @@ module.exports.checkAndGetDataByKey = async (idUser, key, languageMessage)=>{
 }
 module.exports.createNotification = async function(newNotification,languageMessage){ 
     try {
+        // console.log(newNotification)
         resAction = await NotificationModel.create(newNotification);
         return ModelResponse.Success({id:resAction._id});
     } catch (err) {
