@@ -11,6 +11,8 @@ var Controller = require('./Controller');
 const ProjectResponse = require("../client_data_response_models/Project");
 const Path = require('path');
 const NotificationTool = require("./Tool/Notification");
+const NotificationEmailTool = require("./Tool/NotificationEmail");
+
 
 //containt the function with business logics  
 var ProjectController = {  
@@ -1120,6 +1122,8 @@ var ProjectController = {
                     idAccount,
                     nameAccount,
                     idProject,editProject.Name);
+
+                NotificationEmailTool.sendProjectInviteRequest(req.lang,idNewMember,nameAccount,editProject.Name);
 
                 res.json(Controller.Success({ isComplete:true }));  
                 return;

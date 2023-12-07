@@ -10,6 +10,7 @@ const Mail = require('../core/Mail');
 var Controller = require('./Controller');
 const AccountResponse = require('../client_data_response_models/Account');
 const NotificationController = require('./NotificationController');
+const { trusted } = require('mongoose');
 
 //containt the function with business logics  
 var AccountController = {  
@@ -561,7 +562,93 @@ var AccountController = {
             res.json(Controller.Fail(Message(req.lang,"system_error")));   
         }  
     },
-    
+
+    //http get
+    GetRegisterReceiveEmail: async (req, res) => { 
+        try {
+            let idAccount = req.user.id;
+
+            let resAction = await AccountModel.getDataById(idAccount,req.lang);
+            let account = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error)); 
+                return;  
+            } else {
+                let resData = new AccountResponse.RegisterReceiveEmailResponse();
+                resData.isVerifyEmail = account.IsVerifyEmail;
+                if(resData.isVerifyEmail==true){
+                    if(account.RegisterReceiveEmail!=null&&account.RegisterReceiveEmail!=undefined){
+                        resData.addFriendRequest = account.RegisterReceiveEmail.AddFriendRequest;
+                        resData.teamRecruitRequest = account.RegisterReceiveEmail.TeamRecruitRequest;
+                        resData.teamJoinRequest = account.RegisterReceiveEmail.TeamJoinRequest;
+                        resData.projectInviteRequest = account.RegisterReceiveEmail.ProjectInviteRequest;
+                    }
+                }
+                res.json(Controller.Success(resData));
+            }
+        }  
+        catch (error) {  
+            console.log(error)
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
+
+    //http post
+    EditRegisterReceiveEmail: async (req, res) => { 
+        try {
+            let idAccount = req.user.id;
+
+            let status = JSON.parse(req.body.status)||[];
+
+            if (!Controller.isStringArray(status)) {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            let resAction = await AccountModel.getDataById(idAccount,req.lang);
+            let account = resAction.data;
+            if (resAction.status == ModelResponse.ResStatus.Fail) {
+                res.json(Controller.Fail(resAction.error));   
+                return;
+            } else {
+                if(account.IsVerifyEmail==true){
+                    let registerReceiveEmailObject;
+                    if(account.RegisterReceiveEmail!=null&&account.RegisterReceiveEmail!=undefined){
+                        registerReceiveEmailObject = account.RegisterReceiveEmail;
+                    }else{
+                        registerReceiveEmailObject = new AccountModel.RegisterReceiveEmailObject();
+                    }
+
+                    registerReceiveEmailObject.AddFriendRequest = status.indexOf(EditRegisterReceiveEmailStatus.AddFriendRequest)!=-1;
+                    registerReceiveEmailObject.TeamRecruitRequest = status.indexOf(EditRegisterReceiveEmailStatus.TeamRecruitRequest)!=-1;
+                    registerReceiveEmailObject.TeamJoinRequest = status.indexOf(EditRegisterReceiveEmailStatus.TeamJoinRequest)!=-1;
+                    registerReceiveEmailObject.pushrojectInviteRequest = status.indexOf(EditRegisterReceiveEmailStatus.ProjectInviteRequest)!=-1;
+
+                    let updateFields = {$set:{
+                        RegisterReceiveEmail:registerReceiveEmailObject,
+                    }};
+                    //update post
+                    resAction = await AccountModel.updateAccount(idAccount, updateFields,req.lang);
+                    if (resAction.status == ModelResponse.ResStatus.Fail) {
+                        res.json(Controller.Fail(resAction.error)); 
+                        return;
+                    }
+                }   
+            }
+            
+            res.json(Controller.Success({isComplete:true}));
+        }  
+        catch (error) {  
+            console.log(error)
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
 }  
+const EditRegisterReceiveEmailStatus = {
+    AddFriendRequest:"AddFriendRequest",
+    TeamRecruitRequest:"TeamRecruitRequest",
+    TeamJoinRequest:"TeamJoinRequest",
+    ProjectInviteRequest:"ProjectInviteRequest",
+}
   
 module.exports = AccountController;

@@ -12,6 +12,24 @@ const MAXIMUM_CAREER_TARGET_LENGTH = 200;
 const MAXIMUM_EDUCATION_LENGTH = 200;
 const MAXIMUM_WORK_EXPERIENCE_LENGTH = 1000;
 
+const RegisterReceiveEmailSchema = new mongoose.Schema({  
+    AddFriendRequest: {
+        type: Boolean,
+        default:false,
+    },
+    TeamRecruitRequest: {
+        type: Boolean,
+        default:false,
+    },
+    TeamJoinRequest: {
+        type: Boolean,
+        default:false,
+    },
+    ProjectInviteRequest: {
+        type: Boolean,
+        default:false,
+    },
+ })  
 
 //specify the fields which we want in our collection(table).  
 var AccountSchema = new mongoose.Schema({  
@@ -80,6 +98,10 @@ var AccountSchema = new mongoose.Schema({
         }],
         default:[]
     },
+    RegisterReceiveEmail:{
+        type:RegisterReceiveEmailSchema,
+        default:null
+    }
  })  
   
 AccountSchema.index(
@@ -90,7 +112,23 @@ AccountSchema.index(
  //here we saving our collectionSchema with the name user in database  
  //AccountModel will contain the instance of the user for manipulating the data.  
 var AccountModel = module.exports = mongoose.model('Accounts',AccountSchema)  
-
+module.exports.RegisterReceiveEmailObject = class{  
+    AddFriendRequest=false;
+    TeamRecruitRequest=false;
+    TeamJoinRequest=false;
+    ProjectInviteRequest=false;
+    constructor(
+        AddFriendRequest=false,
+        TeamRecruitRequest=false,
+        TeamJoinRequest=false,
+        ProjectInviteRequest=false,
+    ){
+        this.AddFriendRequest=AddFriendRequest;
+        this.TeamRecruitRequest=TeamRecruitRequest;
+        this.TeamJoinRequest=TeamJoinRequest;
+        this.ProjectInviteRequest=ProjectInviteRequest;
+    }
+}
 
 module.exports.getDataById = async (id,languageMessage)=>{
     try {

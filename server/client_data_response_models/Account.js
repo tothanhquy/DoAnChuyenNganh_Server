@@ -18,3 +18,23 @@ module.exports.BasicDataUser = class{
         this.numberNotReadNotifications=numberNotReadNotifications;
     }
 }
+module.exports.RegisterReceiveEmailResponse = class{
+    isVerifyEmail=false;
+    addFriendRequest=false;
+    teamRecruitRequest=false;
+    teamJoinRequest=false;
+    projectInviteRequest=false;
+    constructor(
+        isVerifyEmail=false,
+        addFriendRequest=false,
+        teamRecruitRequest=false,
+        teamJoinRequest=false,
+        projectInviteRequest=false,
+    ){
+        this.isVerifyEmail=isVerifyEmail;
+        this.addFriendRequest=addFriendRequest;
+        this.teamRecruitRequest=teamRecruitRequest;
+        this.teamJoinRequest=teamJoinRequest;
+        this.projectInviteRequest=projectInviteRequest;
+    }
+}

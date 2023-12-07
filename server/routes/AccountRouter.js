@@ -17,5 +17,7 @@ router.post('/Logout',Auth.AuthenUser,AccountController.LogoutPost);
 router.post('/LogoutAll',Auth.AuthenUser,AccountController.LogoutAllPost);
 router.get('/TestRemember',Auth.AuthenUser,AccountController.TestRemember);
 router.get('/GetBasicDataUser',Auth.AuthenUser,AccountController.GetBasicDataUser);
+router.get('/GetRegisterReceiveEmail',Auth.AuthenUser,AccountController.GetRegisterReceiveEmail);
+router.post('/EditRegisterReceiveEmail',Auth.AuthenUser,AccountController.EditRegisterReceiveEmail);
 
 module.exports = router;

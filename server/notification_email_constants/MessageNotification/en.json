@@ -1,0 +1,11 @@
+{
+    "default_message":"Notification content"
+    ,"default_title":"TCaPP - You have a new notification."
+
+    ,"send_you_friend_request":"{{ActionUserName}} sent you a friend request.\nContent:\n{{Content}}\n\nPlease provide them with quick feedback."
+
+    ,"send_you_team_recruit_request":"{{ActionUserName}} sent you a recruit request for team {{TeamName}}.\nContent:\n{{Content}}\n\nPlease provide them with quick feedback."
+    ,"send_you_team_join_request":"{{ActionUserName}} sent you a join request for team {{TeamName}}.\nContent:\n{{Content}}\n\nPlease provide them with quick feedback."
+    ,"send_you_inviting_request_project":"{{ActionUserName}} sent you a inviting request for project {{ProjectName}}.\n\nPlease provide them with quick feedback."
+    
+}

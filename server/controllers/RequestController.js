@@ -11,6 +11,7 @@ var Controller = require('./Controller');
 const RequestResponse = require("../client_data_response_models/Request");
 const ChanelChatController = require("./ChanelChatController")
 const NotificationTool = require("./Tool/Notification");
+const NotificationEmailTool = require("./Tool/NotificationEmail");
 
 
 const GET_LIST_LIMIT_REQUESTS = 10;
@@ -131,6 +132,9 @@ var RequestController = {
                         idAccount,
                         nameAccount,
                         teamId,teamName);
+
+                    NotificationEmailTool.sendTeamRecruitRequest(req.lang,receiveUserNotificationId,nameAccount,teamName,title,content);
+
                 }else{
                     NotificationTool.TeamRequest.sendJoinRequest(
                         req,
@@ -138,6 +142,8 @@ var RequestController = {
                         idAccount,
                         nameAccount,
                         teamId,teamName);
+
+                    NotificationEmailTool.sendTeamJoinRequest(req.lang,receiveUserNotificationId,nameAccount,teamName,title,content);
                 }
                 
                 res.json(Controller.Success({ isComplete:true }));

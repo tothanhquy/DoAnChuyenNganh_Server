@@ -6,6 +6,7 @@ var ChanelChatModel = require('../models/ChanelChatModel');
 var FriendRequestModel = require('../models/FriendRequestModel');  
 var Controller = require('./Controller');
 const NotificationTool = require("./Tool/Notification");
+const NotificationEmailTool = require("./Tool/NotificationEmail");
 
 const GET_LIST_LIMIT_REQUESTS = 20;
 
@@ -105,12 +106,16 @@ var FriendController = {
                     res.json(Controller.Fail(resAction.error));
                     return;
                 } else {
+                    //notification
                     NotificationTool.Friend.sendFriendRequest(
                         req,
                         receiveUser._id.toString(),
                         resAction.data.id,
                         idAccount,
                         nameAccount);
+                    
+                    NotificationEmailTool.sendAddFriendRequest(req.lang,receiveUser._id.toString(),nameAccount,content);
+                    
 
                     res.json(Controller.Success({ isComplete:true, isFriend: false }));
                     return;

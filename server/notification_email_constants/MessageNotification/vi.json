@@ -1,0 +1,11 @@
+{
+    "default_message":"Nội dung thông báo"
+    ,"default_title":"TCaPP - Bạn có thông báo mới."
+
+    ,"send_you_friend_request":"{{ActionUserName}} đã gửi bạn một yêu cầu kết bạn.\nNội dung:\n{{Content}}\n\n Hãy phản hồi họ nhanh nhé."
+
+    ,"send_you_team_recruit_request":"{{ActionUserName}} đã gửi bạn một yêu cầu chiêu mộ vào team {{TeamName}}.\nNội dung:\n{{Content}}\n\n Hãy phản hồi họ nhanh nhé."
+    ,"send_you_team_join_request":"{{ActionUserName}} đã gửi bạn một yêu cầu xin gia nhập vào team {{TeamName}}.\nNội dung:\n{{Content}}\n\n Hãy phản hồi họ nhanh nhé."
+    ,"send_you_inviting_request_project":"{{ActionUserName}} đã gửi bạn một yêu cầu mời tham gia vào dự án {{ProjectName}}.\n\n Hãy phản hồi họ nhanh nhé."
+   
+}
