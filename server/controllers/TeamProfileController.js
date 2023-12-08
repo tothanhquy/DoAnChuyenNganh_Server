@@ -11,6 +11,7 @@ var Controller = require('./Controller');
 const TeamProfileResponse = require("../client_data_response_models/TeamProfile");
 const Path = require('path');
 const NotificationTool = require("./Tool/Notification");
+const LogTool = require("./Tool/Log");
 
 
 //containt the function with business logics  
@@ -362,7 +363,11 @@ var TeamController = {
                     team.chanelChatId = queryTeam.ChanelChat;
                 }
 
+                //system log
+                LogTool.Team.visit(account.id, idTeam);
             }
+            
+
             res.json(Controller.Success(team));  
         
         }  

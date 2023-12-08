@@ -101,4 +101,7 @@
 
     ,"comment_content_constraint":"Chiều dài nội dung bình luận tối thiểu 1 và tối đa {{length}} ký tự."
     ,"comment_not_exist":"Bình luận không tồn tại."
+
+
+    ,"log_not_exist":"Log không tồn tại."
 }

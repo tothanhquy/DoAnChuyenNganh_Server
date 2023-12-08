@@ -12,6 +12,8 @@ var Controller = require('./Controller');
 const PostResponse = require("../client_data_response_models/Post");
 const Path = require('path');
 const NotificationTool = require("./Tool/Notification");
+const LogTool = require("./Tool/Log");
+
 
 const GET_LIST_LIMIT_POSTS = 20;
 
@@ -661,6 +663,9 @@ var PostController = {
                 resObject.isActionable=false;
             }else{
                 resObject.isActionable=true;
+
+                //system log
+                LogTool.Post.detailsVisit(idAccount, postId);
             }
             
             let newPost = new PostResponse.PostListItem();
@@ -810,7 +815,6 @@ var PostController = {
 
             let activeStatus = req.body.active_status;
             let postId = req.body.post_id;
-            console.log(req.body)
 
             let content = req.body.content;
             let categoryKeywordsId = JSON.parse(req.body.keywords)||[];
@@ -1050,6 +1054,46 @@ var PostController = {
                 return;
             }
             res.json(Controller.Success({isComplete:true}));   
+        }  
+        catch (error) {  
+            console.log(error);
+            res.json(Controller.Fail(Message(req.lang,"system_error")));   
+        }  
+    },
+
+    //http post, authen
+    LogFastVisit : async function(req,res){  
+        try {  
+            let idAccount = req.user.id;
+
+            let postId = req.body.post_id;
+            let time = parseInt(req.body.time);
+            let totalTimeVideo = parseInt(req.body.total_time_video);
+            
+            if (postId == undefined || postId == "") {
+                res.json(Controller.Fail(Message(req.lang, "system_error")));
+                return; 
+            }
+
+            if (isNaN(time)){
+                time = 0;
+            }
+            if (isNaN(totalTimeVideo)){
+                totalTimeVideo = 0;
+            }
+
+            if(time!=0){
+                let resAction = await PostModel.getDataById(postId,req.lang);
+                if (resAction.status == ModelResponse.ResStatus.Fail) {
+                    res.json(Controller.Fail(resAction.error));
+                    return;
+                }
+    
+                //system log
+                LogTool.Post.fastVisit(idAccount, postId, time);
+            }
+
+            res.json(Controller.Success(resObject));   
         }  
         catch (error) {  
             console.log(error);

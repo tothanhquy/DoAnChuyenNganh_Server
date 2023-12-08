@@ -12,6 +12,8 @@ const ProjectResponse = require("../client_data_response_models/Project");
 const Path = require('path');
 const NotificationTool = require("./Tool/Notification");
 const NotificationEmailTool = require("./Tool/NotificationEmail");
+const LogTool = require("./Tool/Log");
+
 
 
 //containt the function with business logics  
@@ -283,6 +285,9 @@ var ProjectController = {
                 if (checkMemberIndex !== -1) {
                     project.relationship+='.'+ProjectResponse.Relationship.Member;
                 }
+
+                //system log
+                LogTool.Project.visit(account.id, idProject);
             }
 
             project.tags=queryProject.Tags;

@@ -104,4 +104,7 @@
     ,"comment_content_constraint":"Minimum comment length 1 and maximum {{length}} characters."
     ,"comment_not_exist":"Comment is not exist."
 
+
+    ,"log_not_exist":"Log is not exist."
+
 }

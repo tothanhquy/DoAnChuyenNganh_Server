@@ -9,6 +9,8 @@ var Controller = require('./Controller');
 const AccountProfileResponse = require("../client_data_response_models/AccountProfile");
 const Auth = require("../core/Auth");
 const fs = require('fs');
+const LogTool = require("./Tool/Log");
+
 
 //containt the function with business logics  
 var UserProfileController = { 
@@ -182,7 +184,8 @@ var UserProfileController = {
                 //leader
                 clientResponse.relationship += "|" + AccountProfileResponse.Relationship.Leader;
 
-                
+                LogTool.User.visit(ownAccount.id, idAccount);
+
 
             }
 
