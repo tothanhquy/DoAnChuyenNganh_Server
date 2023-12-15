@@ -31,8 +31,8 @@
     ,"user_cancel_inviting_request_project":"{{Subjects}} đã hủy yêu cầu yêu cầu mời tham gia vào dự án {{MainObject}}."
     
     ,"project_create_new_post":"Dự án {{Subjects}} đã thêm bài viết mới."
-    ,"users_like_post":"Ai đó đã thích dự án {{MainObject}}."
-    ,"users_comment_post":"Ai đó đã bình luận dự án {{MainObject}}."
+    ,"users_like_post":"Ai đó đã thích bài viết {{MainObject}}."
+    ,"users_comment_post":"Ai đó đã bình luận bài viết {{MainObject}}."
 
     
 
