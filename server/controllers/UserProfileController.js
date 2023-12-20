@@ -155,7 +155,7 @@ var UserProfileController = {
                 return;
             } else {
                 accountCVs.forEach(element => {
-                    clientResponse.cvs.push(new AccountProfileResponse.GuestCV(
+                    if(element.IsActive==true)clientResponse.cvs.push(new AccountProfileResponse.GuestCV(
                         element._id,
                         element.Name,
                     ))
